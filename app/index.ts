@@ -22,7 +22,7 @@ app.get("/test", async (req: Request, res: Response) => {
   res.send("started");
 
   // get dm links
-  for (let index = 9; index < dmAccounts.length; index++) {
+  for (let index = 0; index < dmAccounts.length; index++) {
     var startTime = performance.now();
     const dmAccount = dmAccounts[index];
     console.log("account :", dmAccount);
@@ -52,7 +52,7 @@ app.get("/test", async (req: Request, res: Response) => {
     let fetchAccount = fetchAccounts[index];
     await instaServive.init(fetchAccount.username, fetchAccount.password);
     await instaServive.logIn({ cookieLogin: true, index: index + 100 });
-    let userids = await instaServive.fetchUserIdFromDmLinks(links.slice(0, 2));
+    let userids = await instaServive.fetchUserIdFromDmLinks(links);
     await instaServive.dispose();
 
     const wb = xlsx.utils.book_new();

@@ -31,7 +31,7 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // test on 10 acounts
     res.send("started");
     // get dm links
-    for (let index = 9; index < constants_1.dmAccounts.length; index++) {
+    for (let index = 0; index < constants_1.dmAccounts.length; index++) {
         var startTime = performance.now();
         const dmAccount = constants_1.dmAccounts[index];
         console.log("account :", dmAccount);
@@ -51,7 +51,7 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let fetchAccount = constants_1.fetchAccounts[index];
         yield instaServive.init(fetchAccount.username, fetchAccount.password);
         yield instaServive.logIn({ cookieLogin: true, index: index + 100 });
-        let userids = yield instaServive.fetchUserIdFromDmLinks(links.slice(0, 2));
+        let userids = yield instaServive.fetchUserIdFromDmLinks(links);
         yield instaServive.dispose();
         const wb = xlsx_1.default.utils.book_new();
         const ws = xlsx_1.default.utils.json_to_sheet(userids);
