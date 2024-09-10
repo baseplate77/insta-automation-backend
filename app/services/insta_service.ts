@@ -19,18 +19,20 @@ class InstaService {
   }
 
   async turnOffNotificationClick(page: Page, cursor?: GhostCursor) {
-    await page.waitForSelector("button");
+    try {
+      await page.waitForSelector("button", { timeout: 1_000 });
 
-    let btn = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll("button"));
-      const button = buttons.find(
-        (btn) => btn.innerText.trim().toLocaleLowerCase() === "not now"
-      );
-      if (button) {
-        button.click();
-      }
-      return button ? button : null;
-    });
+      let btn = await page.evaluate(() => {
+        const buttons = Array.from(document.querySelectorAll("button"));
+        const button = buttons.find(
+          (btn) => btn.innerText.trim().toLocaleLowerCase() === "not now"
+        );
+        if (button) {
+          button.click();
+        }
+        return button ? button : null;
+      });
+    } catch (error) {}
     // if (btn) {
     //   let classname = btn.className.replace(/ /g, ".");
     //   console.log("found the button", classname);
@@ -78,6 +80,8 @@ class InstaService {
             "div > div.x1vjfegm > div > div > div > div > div > svg"
           );
           if (moreInfoIconElement !== undefined) {
+            console.log("clicking");
+
             await moreInfoIconElement?.click();
             await delay(1000);
             let profileLinkSeletor =
@@ -122,7 +126,7 @@ class InstaService {
               if (moreInfoBtn !== undefined) {
                 await moreInfoBtn?.click();
                 try {
-                  await newPage.waitForSelector("div > button:nth-child(6)", {
+                  await newPage.waitForSelector("div > button", {
                     timeout: 5_000,
                   });
                   let btn = await newPage.evaluate(() => {
@@ -309,7 +313,7 @@ class InstaService {
       let limit = 1;
       let i = 0;
 
-      while (loadingDiv !== null && loadingDiv !== undefined) {
+      while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
         loadingDiv = await page.$('[aria-label="Loading..."]');
         // get the chat user name , active status or last message time
         let chatsDiv = await page.$('[aria-label="Chats"]');

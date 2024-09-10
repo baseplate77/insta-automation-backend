@@ -28,15 +28,18 @@ class InstaService {
     }
     turnOffNotificationClick(page, cursor) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield page.waitForSelector("button");
-            let btn = yield page.evaluate(() => {
-                const buttons = Array.from(document.querySelectorAll("button"));
-                const button = buttons.find((btn) => btn.innerText.trim().toLocaleLowerCase() === "not now");
-                if (button) {
-                    button.click();
-                }
-                return button ? button : null;
-            });
+            try {
+                yield page.waitForSelector("button", { timeout: 1000 });
+                let btn = yield page.evaluate(() => {
+                    const buttons = Array.from(document.querySelectorAll("button"));
+                    const button = buttons.find((btn) => btn.innerText.trim().toLocaleLowerCase() === "not now");
+                    if (button) {
+                        button.click();
+                    }
+                    return button ? button : null;
+                });
+            }
+            catch (error) { }
             // if (btn) {
             //   let classname = btn.className.replace(/ /g, ".");
             //   console.log("found the button", classname);
@@ -86,6 +89,7 @@ class InstaService {
                         yield this.turnOffNotificationClick(newPage);
                         let moreInfoIconElement = yield newPage.$("div > div.x1vjfegm > div > div > div > div > div > svg");
                         if (moreInfoIconElement !== undefined) {
+                            console.log("clicking");
                             yield (moreInfoIconElement === null || moreInfoIconElement === void 0 ? void 0 : moreInfoIconElement.click());
                             yield (0, delay_1.default)(1000);
                             let profileLinkSeletor = "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1uhb9sk.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1.x1bs97v6.x1q0q8m5.xso031l.x5ur3kl.x13fuv20.x178xt8z.x1t1x2f9.x1iyjqo2.xs83m0k.x6ikm8r.x10wlt62 > div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1uhb9sk.xw2csxc.x1odjw0f.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1.x1t1x2f9.x1iyjqo2.xs83m0k > a";
@@ -121,7 +125,7 @@ class InstaService {
                                 if (moreInfoBtn !== undefined) {
                                     yield (moreInfoBtn === null || moreInfoBtn === void 0 ? void 0 : moreInfoBtn.click());
                                     try {
-                                        yield newPage.waitForSelector("div > button:nth-child(6)", {
+                                        yield newPage.waitForSelector("div > button", {
                                             timeout: 5000,
                                         });
                                         let btn = yield newPage.evaluate(() => {
@@ -273,7 +277,7 @@ class InstaService {
                 let loadingDiv = yield page.$('[aria-label="Loading..."]');
                 let limit = 1;
                 let i = 0;
-                while (loadingDiv !== null && loadingDiv !== undefined) {
+                while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');
                     // get the chat user name , active status or last message time
                     let chatsDiv = yield page.$('[aria-label="Chats"]');
