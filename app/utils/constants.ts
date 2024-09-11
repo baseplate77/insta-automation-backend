@@ -32,15 +32,15 @@ export const dmAccounts = [
 ];
 
 export const fetchAccounts = [
+  { username: "miasingh404", password: "_ika_4C?utaQo!hOxL0a" },
+  { username: "jessicadavies27", password: "gute3lstO#uf4O82d$dr" },
   { username: "chloejones3106", password: "gute3lstO#uf4O82d$dr" },
   { username: "sophietaylor8417", password: "gute3lstO#uf4O82d$dr" },
-  { username: "jessicadavies27", password: "gute3lstO#uf4O82d$dr" },
-  { username: "graceevans2316", password: "_ika_4C?utaQo!hOxL0a" },
-  { username: "miasingh404", password: "_ika_4C?utaQo!hOxL0a" },
-  { username: "sophialewis3862", password: "_ika_4C?utaQo!hOxL0a" },
   { username: "avaharris481", password: "_ika_4C?utaQo!hOxL0a" },
-  { username: "charlotteclark9466", password: "_ika_4C?utaQo!hOxL0a" },
   { username: "ukrainianuplift2024", password: "t#y8PhePHLru5rEnoFl5" },
+  { username: "graceevans2316", password: "_ika_4C?utaQo!hOxL0a" },
+  { username: "charlotteclark9466", password: "_ika_4C?utaQo!hOxL0a" },
+  { username: "sophialewis3862", password: "_ika_4C?utaQo!hOxL0a" },
   { username: "welshwanderer2024", password: "t#y8PhePHLru5rEnoFl5" },
 ];
 

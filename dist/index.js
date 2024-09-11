@@ -27,6 +27,55 @@ const port = process.env.PORT || 3000;
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send("ok");
 }));
+app.get("/scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.send("started");
+    // get dm links
+    for (let index = 0; index < constants_1.dmAccounts.length; index++) {
+        var startTime = performance.now();
+        const dmAccount = constants_1.dmAccounts[index];
+        console.log("account :", dmAccount);
+        let instaServive = new insta_service_1.default();
+        yield instaServive.init(dmAccount.username, dmAccount.password);
+        let page = yield instaServive.logIn({ cookieLogin: true, index });
+        // note after login need to handle the save info click to not now
+        console.log("login completeddd");
+        let finaldata = yield instaServive.scanDMs(page);
+        let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
+        yield instaServive.dispose();
+        console.log("final data :", finaldata);
+        const wb = xlsx_1.default.utils.book_new();
+        const ws = xlsx_1.default.utils.json_to_sheet(details);
+        // Append the worksheet to the workbook
+        xlsx_1.default.utils.book_append_sheet(wb, ws, "UserIDs");
+        // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
+        // Write the workbook to a file
+        let filePath = path_1.default.join(__dirname, `${dmAccount.username}.xlsx`);
+        xlsx_1.default.writeFile(wb, filePath);
+        // console.log("links :", links.length);
+        xlsx_1.default.writeFile(wb, filePath);
+        const bucket = firebase_1.amdin.storage().bucket();
+        yield bucket.upload(filePath, {
+            destination: `insta-data/${dmAccount.username}.xlsx`,
+            metadata: {
+                contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+        });
+        const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
+        const [url] = yield file.getSignedUrl({
+            action: "read",
+            expires: "03-01-2500", // Set an appropriate expiration date
+        });
+        var endTime = performance.now();
+        yield (0, resend_1.sendMail)(process.env.EMAIL, `Insta-report-${dmAccount.username}`, `
+      <div>
+        DM scan for account ${dmAccount.username}
+
+        time for execution - ${endTime - startTime} milliseconds
+        <a href="${url}">${dmAccount.username}.xlsx</a>
+      </div>
+      `);
+    }
+}));
 app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // test on 10 acounts
     res.send("started");
@@ -50,7 +99,7 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         instaServive = new insta_service_1.default();
         let fetchAccount = constants_1.fetchAccounts[index];
         yield instaServive.init(fetchAccount.username, fetchAccount.password);
-        yield instaServive.logIn({ cookieLogin: true, index: index + 100 });
+        yield instaServive.logIn({ cookieLogin: true, index: index });
         let userids = yield instaServive.fetchUserIdFromDmLinks(links.slice(0, 100));
         yield instaServive.dispose();
         const wb = xlsx_1.default.utils.book_new();

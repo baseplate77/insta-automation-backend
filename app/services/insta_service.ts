@@ -235,15 +235,15 @@ class InstaService {
             for (let index = 0; index < inboxUrls.length; index++) {
               const inboxUrl = inboxUrls[index] as any;
               if (finaldata[inboxUrl] === undefined) {
-                finaldata[inboxUrl] = {};
+                finaldata[inboxUrl] = {
+                  link: "https://www.instagram.com" + inboxUrl,
+                };
               }
             }
-            let filePath = path.join(__dirname, "inbox.txt");
             let inboxLinks = Object.keys(finaldata).map(
               (d) => "https://www.instagram.com" + d
             );
 
-            fs.writeFileSync(filePath, inboxLinks.join("\n"));
             // console.log("final data :", finaldata);
 
             console.log(Object.keys(finaldata).length);
@@ -311,11 +311,11 @@ class InstaService {
       });
       let loadingDiv = await page.$('[aria-label="Loading..."]');
 
-      let limit = 5;
+      let limit = 2;
       let i = 0;
       console.log("limit :", limit);
 
-      while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
+      while (loadingDiv !== null && loadingDiv !== undefined) {
         loadingDiv = await page.$('[aria-label="Loading..."]');
         // get the chat user name , active status or last message time
         let chatsDiv = await page.$('[aria-label="Chats"]');
@@ -370,6 +370,7 @@ class InstaService {
                 userName,
                 lastActive,
                 lastMsgDate,
+                ...finaldata[keys[index]],
               };
               console.log("found data of ", index, keys[index]);
 
@@ -387,6 +388,7 @@ class InstaService {
                 userName: "",
                 lastActive: "",
                 lastMsgDate: "",
+                ...finaldata[keys[index]],
               };
               console.log(
                 "error :",

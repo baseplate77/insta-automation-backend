@@ -215,12 +215,12 @@ class InstaService {
                             for (let index = 0; index < inboxUrls.length; index++) {
                                 const inboxUrl = inboxUrls[index];
                                 if (finaldata[inboxUrl] === undefined) {
-                                    finaldata[inboxUrl] = {};
+                                    finaldata[inboxUrl] = {
+                                        link: "https://www.instagram.com" + inboxUrl,
+                                    };
                                 }
                             }
-                            let filePath = path_1.default.join(__dirname, "inbox.txt");
                             let inboxLinks = Object.keys(finaldata).map((d) => "https://www.instagram.com" + d);
-                            fs_1.default.writeFileSync(filePath, inboxLinks.join("\n"));
                             // console.log("final data :", finaldata);
                             console.log(Object.keys(finaldata).length);
                             // console.log(Object.keys(jsonObject["payload"]["payloads"]));
@@ -276,10 +276,10 @@ class InstaService {
                     y: boundingBox.y + boundingBox.height / 2,
                 });
                 let loadingDiv = yield page.$('[aria-label="Loading..."]');
-                let limit = 5;
+                let limit = 2;
                 let i = 0;
                 console.log("limit :", limit);
-                while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
+                while (loadingDiv !== null && loadingDiv !== undefined) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');
                     // get the chat user name , active status or last message time
                     let chatsDiv = yield page.$('[aria-label="Chats"]');
@@ -310,11 +310,9 @@ class InstaService {
                                 let lastMsgDate = lastMsgDateElement
                                     ? yield lastMsgDateElement.evaluate((e) => e.innerText)
                                     : "";
-                                finaldata[keys[index]] = {
-                                    userName,
+                                finaldata[keys[index]] = Object.assign({ userName,
                                     lastActive,
-                                    lastMsgDate,
-                                };
+                                    lastMsgDate }, finaldata[keys[index]]);
                                 console.log("found data of ", index, keys[index]);
                                 // console.log(
                                 //   index,
@@ -327,11 +325,7 @@ class InstaService {
                                 // );
                             }
                             catch (error) {
-                                finaldata[keys[index]] = {
-                                    userName: "",
-                                    lastActive: "",
-                                    lastMsgDate: "",
-                                };
+                                finaldata[keys[index]] = Object.assign({ userName: "", lastActive: "", lastMsgDate: "" }, finaldata[keys[index]]);
                                 console.log("error :", index, keys.length > index ? keys[index] : "index is higher than key", "\n", error);
                             }
                         }

@@ -16,6 +16,68 @@ app.get("/", async (req: Request, res: Response) => {
   res.send("ok");
 });
 
+app.get("/scan-dm", async (req: Request, res: Response) => {
+  res.send("started");
+
+  // get dm links
+  for (let index = 0; index < dmAccounts.length; index++) {
+    var startTime = performance.now();
+    const dmAccount = dmAccounts[index];
+    console.log("account :", dmAccount);
+    let instaServive = new InstaService();
+
+    await instaServive.init(dmAccount.username, dmAccount.password);
+    let page = await instaServive.logIn({ cookieLogin: true, index });
+    // note after login need to handle the save info click to not now
+    console.log("login completeddd");
+
+    let finaldata = await instaServive.scanDMs(page);
+    let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
+    await instaServive.dispose();
+    console.log("final data :", finaldata);
+
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.json_to_sheet(details);
+
+    // Append the worksheet to the workbook
+    xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
+    // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    // Write the workbook to a file
+    let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
+    xlsx.writeFile(wb, filePath);
+    // console.log("links :", links.length);
+
+    xlsx.writeFile(wb, filePath);
+    const bucket = amdin.storage().bucket();
+    await bucket.upload(filePath, {
+      destination: `insta-data/${dmAccount.username}.xlsx`,
+      metadata: {
+        contentType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    });
+    const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
+    const [url] = await file.getSignedUrl({
+      action: "read",
+      expires: "03-01-2500", // Set an appropriate expiration date
+    });
+
+    var endTime = performance.now();
+    await sendMail(
+      process.env.EMAIL!,
+      `Insta-report-${dmAccount.username}`,
+      `
+      <div>
+        DM scan for account ${dmAccount.username}
+
+        time for execution - ${endTime - startTime} milliseconds
+        <a href="${url}">${dmAccount.username}.xlsx</a>
+      </div>
+      `
+    );
+  }
+});
 app.get("/test", async (req: Request, res: Response) => {
   // test on 10 acounts
 
@@ -51,7 +113,7 @@ app.get("/test", async (req: Request, res: Response) => {
     instaServive = new InstaService();
     let fetchAccount = fetchAccounts[index];
     await instaServive.init(fetchAccount.username, fetchAccount.password);
-    await instaServive.logIn({ cookieLogin: true, index: index + 100 });
+    await instaServive.logIn({ cookieLogin: true, index: index });
     let userids = await instaServive.fetchUserIdFromDmLinks(
       links.slice(0, 100)
     );
