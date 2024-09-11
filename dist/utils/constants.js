@@ -21,16 +21,16 @@ exports.proxyList = [
     `${process.env.PROXY_URL}:10010`,
 ];
 exports.dmAccounts = [
+    { username: "moninabryant", password: "~tHU7jw5@.2p47>m" },
+    { username: "tymonmark22", password: "G,K?qbvaRyJZd2p+" },
     { username: "desire_baschetti", password: "cgVyM8Y`}[6[!@y," },
     { username: "reynawoody_", password: "}pP&d@U<76ysd`Su" },
-    { username: "moninabryant", password: "~tHU7jw5@.2p47>m" },
+    { username: "angelinamarcus12", password: `SA8^wm3d+%N[{H"H` },
     { username: "eileen_ramona_01", password: "PrideBack@up345" },
-    { username: "tymonmark22", password: "G,K?qbvaRyJZd2p+" },
+    { username: "Kai_Nelsonn", password: `pK>x#cHp8K\\]q["Q` },
+    { username: "Roman.bakerr_", password: `)f4b5{V'%")FN!Tz` },
     { username: "yasemin_wilkinson", password: "h<5>.ad~S5<N(YK*" },
     { username: "David.whitey_", password: "wf+TZ-!U)3VS{a=V" },
-    { username: "Roman.bakerr_", password: `)f4b5{V'%")FN!Tz` },
-    { username: "angelinamarcus12", password: `SA8^wm3d+%N[{H"H` },
-    { username: "Kai_Nelsonn", password: `pK>x#cHp8K\\]q["Q` },
 ];
 exports.fetchAccounts = [
     { username: "chloejones3106", password: "gute3lstO#uf4O82d$dr" },
