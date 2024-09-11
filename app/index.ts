@@ -52,7 +52,9 @@ app.get("/test", async (req: Request, res: Response) => {
     let fetchAccount = fetchAccounts[index];
     await instaServive.init(fetchAccount.username, fetchAccount.password);
     await instaServive.logIn({ cookieLogin: true, index: index + 100 });
-    let userids = await instaServive.fetchUserIdFromDmLinks(links);
+    let userids = await instaServive.fetchUserIdFromDmLinks(
+      links.slice(0, 100)
+    );
     await instaServive.dispose();
 
     const wb = xlsx.utils.book_new();
@@ -138,7 +140,9 @@ app.get("/test2", async (req: Request, res: Response) => {
     let fetchAccount = fetchAccounts[index];
     await instaServive.init(fetchAccount.username, fetchAccount.password);
     await instaServive.logIn({ cookieLogin: true, index: index + 100 });
-    let userids = await instaServive.fetchUserIdFromDmLinks(links);
+    let userids = await instaServive.fetchUserIdFromDmLinks(
+      links.slice(0, 100)
+    );
     await instaServive.dispose();
 
     const wb = xlsx.utils.book_new();

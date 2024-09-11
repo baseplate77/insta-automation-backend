@@ -94,7 +94,7 @@ class InstaService {
                             yield (0, delay_1.default)(1000);
                             let profileLinkSeletor = "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1uhb9sk.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1.x1bs97v6.x1q0q8m5.xso031l.x5ur3kl.x13fuv20.x178xt8z.x1t1x2f9.x1iyjqo2.xs83m0k.x6ikm8r.x10wlt62 > div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1uhb9sk.xw2csxc.x1odjw0f.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1.x1t1x2f9.x1iyjqo2.xs83m0k > a";
                             yield newPage.waitForSelector(profileLinkSeletor, {
-                                timeout: 5000,
+                                timeout: 20000,
                             });
                             let chatUserElement = yield newPage.$(profileLinkSeletor);
                             let profileLink = chatUserElement
@@ -294,7 +294,9 @@ class InstaService {
                                 const element = dmChildNodes[index];
                                 yield element.scrollIntoView();
                                 yield (0, delay_1.default)(300);
-                                let userName = yield element.$eval("span.x1lliihq.x1plvlek.xryxfnj.x1n2onr6.x193iq5w.xeuugli.x1fj9vlw.x13faqbe.x1vvkbs.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x1i0vuye.xvs91rp.xo1l8bm.x5n08af.x1tu3fi.x3x7a5m.x10wh9bi.x1wdrske.x8viiok.x18hxmgj > span", (e) => e.innerText);
+                                let userNameSelector = "span.x1lliihq.x1plvlek.xryxfnj.x1n2onr6.x193iq5w.xeuugli.x1fj9vlw.x13faqbe.x1vvkbs.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x1i0vuye.xvs91rp.xo1l8bm.x5n08af.x1tu3fi.x3x7a5m.x10wh9bi.x1wdrske.x8viiok.x18hxmgj > span";
+                                element.waitForSelector(userNameSelector, { timeout: 2000 });
+                                let userName = yield element.$eval(userNameSelector, (e) => e.innerText);
                                 let lastActiveElement = yield element.$("div > div:nth-child(3) > div > span > span");
                                 let lastActive = lastActiveElement
                                     ? yield lastActiveElement.evaluate((e) => e.innerText)

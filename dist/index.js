@@ -51,7 +51,7 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let fetchAccount = constants_1.fetchAccounts[index];
         yield instaServive.init(fetchAccount.username, fetchAccount.password);
         yield instaServive.logIn({ cookieLogin: true, index: index + 100 });
-        let userids = yield instaServive.fetchUserIdFromDmLinks(links);
+        let userids = yield instaServive.fetchUserIdFromDmLinks(links.slice(0, 100));
         yield instaServive.dispose();
         const wb = xlsx_1.default.utils.book_new();
         const ws = xlsx_1.default.utils.json_to_sheet(userids);
@@ -114,7 +114,7 @@ app.get("/test2", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let fetchAccount = constants_1.fetchAccounts[index];
         yield instaServive.init(fetchAccount.username, fetchAccount.password);
         yield instaServive.logIn({ cookieLogin: true, index: index + 100 });
-        let userids = yield instaServive.fetchUserIdFromDmLinks(links);
+        let userids = yield instaServive.fetchUserIdFromDmLinks(links.slice(0, 100));
         yield instaServive.dispose();
         const wb = xlsx_1.default.utils.book_new();
         const ws = xlsx_1.default.utils.json_to_sheet(userids);
