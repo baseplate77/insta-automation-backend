@@ -312,6 +312,7 @@ class InstaService {
 
       let limit = 5;
       let i = 0;
+      console.log("limit :", limit);
 
       while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
         loadingDiv = await page.$('[aria-label="Loading..."]');

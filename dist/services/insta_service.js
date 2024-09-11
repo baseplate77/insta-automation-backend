@@ -277,6 +277,7 @@ class InstaService {
                 let loadingDiv = yield page.$('[aria-label="Loading..."]');
                 let limit = 5;
                 let i = 0;
+                console.log("limit :", limit);
                 while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');
                     // get the chat user name , active status or last message time
