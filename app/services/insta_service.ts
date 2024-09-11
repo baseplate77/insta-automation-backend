@@ -310,10 +310,10 @@ class InstaService {
       });
       let loadingDiv = await page.$('[aria-label="Loading..."]');
 
-      let limit = 1;
+      let limit = 20;
       let i = 0;
 
-      while (loadingDiv !== null && loadingDiv !== undefined) {
+      while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
         loadingDiv = await page.$('[aria-label="Loading..."]');
         // get the chat user name , active status or last message time
         let chatsDiv = await page.$('[aria-label="Chats"]');

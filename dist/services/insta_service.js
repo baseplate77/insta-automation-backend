@@ -275,9 +275,9 @@ class InstaService {
                     y: boundingBox.y + boundingBox.height / 2,
                 });
                 let loadingDiv = yield page.$('[aria-label="Loading..."]');
-                let limit = 1;
+                let limit = 20;
                 let i = 0;
-                while (loadingDiv !== null && loadingDiv !== undefined) {
+                while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');
                     // get the chat user name , active status or last message time
                     let chatsDiv = yield page.$('[aria-label="Chats"]');
