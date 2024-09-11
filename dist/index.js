@@ -43,7 +43,7 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let finaldata = yield instaServive.scanDMs(page);
         let links = Object.keys(finaldata).map((dmData) => "https://www.instagram.com" + dmData);
         yield instaServive.dispose();
-        console.log("links :", links.length);
+        // console.log("links :", links.length);
         fs_1.default.writeFileSync(path_1.default.join(__dirname, `finalData-${index}.json`), JSON.stringify(links));
         // console.log("final data :", finaldata);
         // scan the ids
@@ -106,7 +106,7 @@ app.get("/test2", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         let finaldata = yield instaServive.scanDMs(page);
         let links = Object.keys(finaldata).map((dmData) => "https://www.instagram.com" + dmData);
         yield instaServive.dispose();
-        console.log("links :", links.length);
+        // console.log("links :", links.length);
         fs_1.default.writeFileSync(path_1.default.join(__dirname, `finalData-${index}.json`), JSON.stringify(links));
         // console.log("final data :", finaldata);
         // scan the ids

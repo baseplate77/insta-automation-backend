@@ -76,6 +76,7 @@ class InstaService {
         return __awaiter(this, arguments, void 0, function* (links, batchSize = 2) {
             // let batchSize = 2;
             let profileData = [];
+            console.log("links :", links.length);
             for (let i = 0; i < links.length; i += batchSize) {
                 let tempLinks = [...links];
                 let batchLinks = tempLinks.splice(i, batchSize);

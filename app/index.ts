@@ -38,7 +38,7 @@ app.get("/test", async (req: Request, res: Response) => {
       (dmData) => "https://www.instagram.com" + dmData
     );
     await instaServive.dispose();
-    console.log("links :", links.length);
+    // console.log("links :", links.length);
 
     fs.writeFileSync(
       path.join(__dirname, `finalData-${index}.json`),
@@ -126,7 +126,7 @@ app.get("/test2", async (req: Request, res: Response) => {
       (dmData) => "https://www.instagram.com" + dmData
     );
     await instaServive.dispose();
-    console.log("links :", links.length);
+    // console.log("links :", links.length);
 
     fs.writeFileSync(
       path.join(__dirname, `finalData-${index}.json`),

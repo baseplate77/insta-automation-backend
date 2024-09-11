@@ -63,6 +63,7 @@ class InstaService {
   async fetchUserIdFromDmLinks(links: string[], batchSize = 2) {
     // let batchSize = 2;
     let profileData: any = [];
+    console.log("links :", links.length);
 
     for (let i = 0; i < links.length; i += batchSize) {
       let tempLinks = [...links];
