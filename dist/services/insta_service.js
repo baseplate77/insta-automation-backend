@@ -275,7 +275,7 @@ class InstaService {
                     y: boundingBox.y + boundingBox.height / 2,
                 });
                 let loadingDiv = yield page.$('[aria-label="Loading..."]');
-                let limit = 20;
+                let limit = 5;
                 let i = 0;
                 while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');

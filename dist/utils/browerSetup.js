@@ -133,12 +133,12 @@ class GlobalBroswer {
             // );
             // const randomProxy = proxyList[Math.floor(Math.random() * proxyList.length)];
             this.browser = yield puppeteer.launch({
-                executablePath: "/usr/bin/google-chrome",
+                // executablePath: "/usr/bin/google-chrome",
                 // ignoreHTTPSErrors: true,
                 protocolTimeout: 0,
                 timeout: 0,
-                headless: true,
-                // headless: false,
+                // headless: true,
+                headless: false,
                 args: [
                     "--disable-gpu",
                     "--disable-setuid-sandbox",

@@ -44,7 +44,6 @@ app.get("/test", async (req: Request, res: Response) => {
       path.join(__dirname, `finalData-${index}.json`),
       JSON.stringify(links)
     );
-    console.log("final data :", finaldata);
 
     // scan the ids
 
@@ -52,9 +51,7 @@ app.get("/test", async (req: Request, res: Response) => {
     let fetchAccount = fetchAccounts[index];
     await instaServive.init(fetchAccount.username, fetchAccount.password);
     await instaServive.logIn({ cookieLogin: true, index: index + 100 });
-    let userids = await instaServive.fetchUserIdFromDmLinks(
-      links.slice(0, 100)
-    );
+    let userids = await instaServive.fetchUserIdFromDmLinks(links);
     await instaServive.dispose();
 
     const wb = xlsx.utils.book_new();
@@ -126,7 +123,7 @@ app.get("/test2", async (req: Request, res: Response) => {
       (dmData) => "https://www.instagram.com" + dmData
     );
     await instaServive.dispose();
-    console.log("links :", links);
+    console.log("links :", links.length);
 
     fs.writeFileSync(
       path.join(__dirname, `finalData-${index}.json`),
@@ -140,9 +137,7 @@ app.get("/test2", async (req: Request, res: Response) => {
     let fetchAccount = fetchAccounts[index];
     await instaServive.init(fetchAccount.username, fetchAccount.password);
     await instaServive.logIn({ cookieLogin: true, index: index + 100 });
-    let userids = await instaServive.fetchUserIdFromDmLinks(
-      links.slice(0, 100)
-    );
+    let userids = await instaServive.fetchUserIdFromDmLinks(links);
     await instaServive.dispose();
 
     const wb = xlsx.utils.book_new();

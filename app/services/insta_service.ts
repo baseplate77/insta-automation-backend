@@ -310,7 +310,7 @@ class InstaService {
       });
       let loadingDiv = await page.$('[aria-label="Loading..."]');
 
-      let limit = 20;
+      let limit = 5;
       let i = 0;
 
       while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
