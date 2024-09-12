@@ -356,7 +356,7 @@ class InstaService {
 
               let userName;
               try {
-                element.waitForSelector(userNameSelector, { timeout: 5_000 });
+                // element.waitForSelector(userNameSelector, { timeout: 5_000 });
                 userName = await element.$eval(
                   userNameSelector,
                   (e: any) => e.innerText
