@@ -353,11 +353,18 @@ class InstaService {
               await delay(300);
               let userNameSelector =
                 "span.x1lliihq.x1plvlek.xryxfnj.x1n2onr6.x193iq5w.xeuugli.x1fj9vlw.x13faqbe.x1vvkbs.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x1i0vuye.xvs91rp.xo1l8bm.x5n08af.x1tu3fi.x3x7a5m.x10wh9bi.x1wdrske.x8viiok.x18hxmgj > span";
-              element.waitForSelector(userNameSelector, { timeout: 2_000 });
-              let userName = await element.$eval(
-                userNameSelector,
-                (e: any) => e.innerText
-              );
+
+              let userName;
+              try {
+                element.waitForSelector(userNameSelector, { timeout: 5_000 });
+                userName = await element.$eval(
+                  userNameSelector,
+                  (e: any) => e.innerText
+                );
+              } catch (error) {
+                console.log("error :", error);
+                userName = "";
+              }
 
               let lastActiveElement = await element.$(
                 "div > div:nth-child(3) > div > span > span"
