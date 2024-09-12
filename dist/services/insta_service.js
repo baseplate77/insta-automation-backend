@@ -220,7 +220,9 @@ class InstaService {
                                     };
                                 }
                             }
-                            let inboxLinks = Object.keys(finaldata).map((d) => "https://www.instagram.com" + d);
+                            // let inboxLinks = Object.keys(finaldata).map(
+                            //   (d) => "https://www.instagram.com" + d
+                            // );
                             // console.log("final data :", finaldata);
                             console.log(Object.keys(finaldata).length);
                             // console.log(Object.keys(jsonObject["payload"]["payloads"]));
@@ -231,7 +233,7 @@ class InstaService {
                 yield page.goto("https://www.instagram.com/direct/inbox/", {
                     timeout: 0,
                 });
-                yield (0, delay_1.default)(2000);
+                // await delay(2000);
                 // await delay(2000);
                 // if login challenge is present select "not now"
                 let url = page.url();
@@ -250,7 +252,7 @@ class InstaService {
                 // await delay(2000);
                 // turn on notification dialoag handler ( CLICK NOT NOW )
                 yield this.turnOffNotificationClick(page, cursor);
-                yield (0, delay_1.default)(2000);
+                yield (0, delay_1.default)(500);
                 // await page.evaluate(() => {
                 //   const buttons = Array.from(document.querySelectorAll("button"));
                 //   const button = buttons.find(
@@ -278,7 +280,9 @@ class InstaService {
                 let loadingDiv = yield page.$('[aria-label="Loading..."]');
                 let limit = 2;
                 let i = 0;
-                console.log("limit :", limit);
+                let previoursObjectLeng = -99;
+                let repeatedSameValue = 0;
+                // console.log("limit :", limit);
                 while (loadingDiv !== null && loadingDiv !== undefined) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');
                     // get the chat user name , active status or last message time
@@ -287,6 +291,15 @@ class InstaService {
                     let dmChildNodes = yield (dmListDiv === null || dmListDiv === void 0 ? void 0 : dmListDiv.$$(":scope > *"));
                     let keys = Object.keys(finaldata);
                     console.log("object keys length :", keys.length, dmChildNodes === null || dmChildNodes === void 0 ? void 0 : dmChildNodes.length);
+                    if (previoursObjectLeng === keys.length) {
+                        if (repeatedSameValue === 3)
+                            break;
+                        repeatedSameValue++;
+                    }
+                    else {
+                        repeatedSameValue = 0;
+                        previoursObjectLeng = keys.length;
+                    }
                     for (let index = 0; index < dmChildNodes.length; index++) {
                         // data already exist return
                         if (finaldata[keys[index]] !== undefined &&
@@ -332,7 +345,7 @@ class InstaService {
                     }
                     // scroll to fetch new dm
                     let randomdelay = Math.random() * 3 + 1;
-                    yield (0, delay_1.default)(randomdelay * 1000);
+                    yield (0, delay_1.default)(randomdelay * 300);
                     let randomScroll = Math.floor(Math.random() * 6) + 4;
                     yield page.mouse.wheel({ deltaY: randomScroll * 100 });
                     // loadingDiv = await page.$('[aria-label="Loading..."]');

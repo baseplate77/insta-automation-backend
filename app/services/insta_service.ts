@@ -240,9 +240,9 @@ class InstaService {
                 };
               }
             }
-            let inboxLinks = Object.keys(finaldata).map(
-              (d) => "https://www.instagram.com" + d
-            );
+            // let inboxLinks = Object.keys(finaldata).map(
+            //   (d) => "https://www.instagram.com" + d
+            // );
 
             // console.log("final data :", finaldata);
 
@@ -258,7 +258,7 @@ class InstaService {
         timeout: 0,
       });
 
-      await delay(2000);
+      // await delay(2000);
       // await delay(2000);
       // if login challenge is present select "not now"
       let url = page.url();
@@ -281,7 +281,7 @@ class InstaService {
       // await delay(2000);
       // turn on notification dialoag handler ( CLICK NOT NOW )
       await this.turnOffNotificationClick(page, cursor);
-      await delay(2000);
+      await delay(500);
       // await page.evaluate(() => {
       //   const buttons = Array.from(document.querySelectorAll("button"));
       //   const button = buttons.find(
@@ -313,7 +313,9 @@ class InstaService {
 
       let limit = 2;
       let i = 0;
-      console.log("limit :", limit);
+      let previoursObjectLeng = -99;
+      let repeatedSameValue = 0;
+      // console.log("limit :", limit);
 
       while (loadingDiv !== null && loadingDiv !== undefined) {
         loadingDiv = await page.$('[aria-label="Loading..."]');
@@ -327,6 +329,14 @@ class InstaService {
 
         let keys = Object.keys(finaldata);
         console.log("object keys length :", keys.length, dmChildNodes?.length);
+
+        if (previoursObjectLeng === keys.length) {
+          if (repeatedSameValue === 3) break;
+          repeatedSameValue++;
+        } else {
+          repeatedSameValue = 0;
+          previoursObjectLeng = keys.length;
+        }
 
         for (let index = 0; index < dmChildNodes!.length; index++) {
           // data already exist return
@@ -403,7 +413,7 @@ class InstaService {
 
         // scroll to fetch new dm
         let randomdelay = Math.random() * 3 + 1;
-        await delay(randomdelay * 1000);
+        await delay(randomdelay * 300);
         let randomScroll = Math.floor(Math.random() * 6) + 4;
         await page.mouse.wheel({ deltaY: randomScroll * 100 });
         // loadingDiv = await page.$('[aria-label="Loading..."]');
