@@ -37,6 +37,8 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 app.get("/scan-dm", async (req: Request, res: Response) => {
+  const { accNumber } = req.query;
+  let index = parseInt(accNumber as string);
   res.send("started");
 
   // let promise = dmAccounts.map(async (d: any, index: number) => {
@@ -101,142 +103,144 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
 
   // // get dm links
 
-  for (let index = 0; index < dmAccounts.length; index++) {
-    var startTime = performance.now();
-    const dmAccount = dmAccounts[index];
-    console.log("account :", dmAccount);
-    let instaServive = new InstaService();
+  // for (let index = 0; index < dmAccounts.length; index++) {
+  var startTime = performance.now();
+  const dmAccount = dmAccounts[index];
+  console.log("account :", dmAccount);
+  let instaServive = new InstaService();
 
-    await instaServive.init(dmAccount.username, dmAccount.password);
-    let page = await instaServive.logIn({ cookieLogin: true, index });
-    // note after login need to handle the save info click to not now
-    console.log("login completeddd");
+  await instaServive.init(dmAccount.username, dmAccount.password);
+  let page = await instaServive.logIn({ cookieLogin: true, index });
+  // note after login need to handle the save info click to not now
+  console.log("login completeddd");
 
-    let finaldata = await instaServive.scanDMs(page);
-    let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
-    await instaServive.dispose();
-    console.log("final data :", finaldata);
+  let finaldata = await instaServive.scanDMs(page);
+  let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
+  await instaServive.dispose();
 
-    // const wb = xlsx.utils.book_new();
-    // const ws = xlsx.utils.json_to_sheet(details);
+  const wb = xlsx.utils.book_new();
+  const ws = xlsx.utils.json_to_sheet(details);
 
-    // // Append the worksheet to the workbook
-    // xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
-    // // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
+  // Append the worksheet to the workbook
+  xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
+  // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
 
-    // // Write the workbook to a file
-    // let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
-    // xlsx.writeFile(wb, filePath);
-    // // console.log("links :", links.length);
+  // Write the workbook to a file
+  let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
+  xlsx.writeFile(wb, filePath);
+  // console.log("links :", links.length);
 
-    // xlsx.writeFile(wb, filePath);
-    // const bucket = amdin.storage().bucket();
-    // await bucket.upload(filePath, {
-    //   destination: `insta-data/${dmAccount.username}.xlsx`,
-    //   metadata: {
-    //     contentType:
-    //       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    //   },
-    // });
-    // const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
-    // const [url] = await file.getSignedUrl({
-    //   action: "read",
-    //   expires: "03-01-2500", // Set an appropriate expiration date
-    // });
+  xlsx.writeFile(wb, filePath);
+  const bucket = amdin.storage().bucket();
+  await bucket.upload(filePath, {
+    destination: `insta-data/${dmAccount.username}.xlsx`,
+    metadata: {
+      contentType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    },
+  });
+  const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
+  const [url] = await file.getSignedUrl({
+    action: "read",
+    expires: "03-01-2500", // Set an appropriate expiration date
+  });
 
-    var endTime = performance.now();
-    // await sendMail(
-    //   process.env.EMAIL!,
-    //   `Insta-report-${dmAccount.username}`,
-    //   `
-    //   <div>
-    //     DM scan for account ${dmAccount.username}
+  var endTime = performance.now();
+  await sendMail(
+    process.env.EMAIL!,
+    `Insta-report-${dmAccount.username}`,
+    `
+      <div>
+        DM scan for account ${dmAccount.username}
 
-    //     time for execution - ${endTime - startTime} milliseconds
-    //     <a href="${url}">${dmAccount.username}.xlsx</a>
-    //   </div>
-    //   `
-    // );
-  }
+        time for execution - ${endTime - startTime} milliseconds
+        <a href="${url}">${dmAccount.username}.xlsx</a>
+      </div>
+      `
+  );
+  // }
 });
 app.get("/test", async (req: Request, res: Response) => {
   // test on 10 acounts
+  const { accNumber } = req.query;
+  let index = parseInt(accNumber as string);
 
   res.send("started");
 
   // get dm links
-  for (let index = 0; index < 1; index++) {
-    var startTime = performance.now();
-    const dmAccount = dmAccounts[index];
-    console.log("account :", dmAccount);
-    let instaServive = new InstaService();
+  // for (let index = 0; index < 1; index++) {
+  var startTime = performance.now();
+  const dmAccount = dmAccounts[index];
+  console.log("account :", dmAccount);
+  let instaServive = new InstaService();
 
-    await instaServive.init(dmAccount.username, dmAccount.password);
-    let page = await instaServive.logIn({ cookieLogin: true, index });
-    // note after login need to handle the save info click to not now
-    console.log("login completeddd");
+  await instaServive.init(dmAccount.username, dmAccount.password);
+  let page = await instaServive.logIn({ cookieLogin: true, index });
+  // note after login need to handle the save info click to not now
+  console.log("login completeddd");
 
-    let finaldata = await instaServive.scanDMs(page);
+  let finaldata = await instaServive.scanDMs(page);
 
-    let links = Object.keys(finaldata).map(
-      (dmData) => "https://www.instagram.com" + dmData
-    );
-    await instaServive.dispose();
-    // console.log("links :", links.length);
+  let links = Object.keys(finaldata).map((dmData) => ({
+    link: "https://www.instagram.com" + dmData,
+    ...finaldata[dmData],
+  }));
+  await instaServive.dispose();
+  console.log("finalData :", links);
 
-    fs.writeFileSync(
-      path.join(__dirname, `finalData-${index}.json`),
-      JSON.stringify(links)
-    );
-    // console.log("final data :", finaldata);
+  // console.log("links :", links.length);
 
-    // scan the ids
+  fs.writeFileSync(
+    path.join(__dirname, `finalData-${index}.json`),
+    JSON.stringify(links)
+  );
+  // console.log("final data :", finaldata);
 
-    instaServive = new InstaService();
+  // scan the ids
 
-    let fetchAccount = fetchAccounts[index];
+  instaServive = new InstaService();
 
-    await instaServive.init(fetchAccount.username, fetchAccount.password);
+  let fetchAccount = fetchAccounts[index];
 
-    await instaServive.logIn({ cookieLogin: true, index: index });
+  await instaServive.init(fetchAccount.username, fetchAccount.password);
 
-    let userids = await instaServive.fetchUserIdFromDmLinks(
-      links.slice(0, 100)
-    );
+  await instaServive.logIn({ cookieLogin: true, index: index });
 
-    await instaServive.dispose();
+  let userids = await instaServive.fetchUserIdFromDmLinks(links);
 
-    const wb = xlsx.utils.book_new();
-    const ws = xlsx.utils.json_to_sheet(userids);
+  await instaServive.dispose();
 
-    // Append the worksheet to the workbook
-    xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
+  const wb = xlsx.utils.book_new();
+  const ws = xlsx.utils.json_to_sheet(userids);
 
-    // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
-    // Write the workbook to a file
+  // Append the worksheet to the workbook
+  xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
 
-    let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
-    xlsx.writeFile(wb, filePath);
-    const bucket = amdin.storage().bucket();
-    await bucket.upload(filePath, {
-      destination: `insta-data/${dmAccount.username}.xlsx`,
-      metadata: {
-        contentType:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      },
-    });
-    const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
-    const [url] = await file.getSignedUrl({
-      action: "read",
-      expires: "03-01-2500",
-    });
+  // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
+  // Write the workbook to a file
 
-    var endTime = performance.now();
+  let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
+  xlsx.writeFile(wb, filePath);
+  const bucket = amdin.storage().bucket();
+  await bucket.upload(filePath, {
+    destination: `insta-data/${dmAccount.username}.xlsx`,
+    metadata: {
+      contentType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    },
+  });
+  const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
+  const [url] = await file.getSignedUrl({
+    action: "read",
+    expires: "03-01-2500",
+  });
 
-    await sendMail(
-      process.env.EMAIL!,
-      `Insta-report-${dmAccount.username}`,
-      `
+  var endTime = performance.now();
+
+  await sendMail(
+    process.env.EMAIL!,
+    `Insta-report-${dmAccount.username}`,
+    `
       <div>
         Fetch data for account ${dmAccount.username}
 
@@ -244,17 +248,17 @@ app.get("/test", async (req: Request, res: Response) => {
         <a href="${url}">${dmAccount.username}.xlsx</a>
       </div>
       `
-    );
+  );
 
-    console.log("completed");
+  console.log("completed");
 
-    // fs.writeFileSync(
-    //   path.join(__dirname, `userids-${index}.json`),
-    //   JSON.stringify(userids)
-    // );
+  // fs.writeFileSync(
+  //   path.join(__dirname, `userids-${index}.json`),
+  //   JSON.stringify(userids)
+  // );
 
-    console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
-  }
+  console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
+  // }
 });
 app.get("/test2", async (req: Request, res: Response) => {
   // test on 10 acounts

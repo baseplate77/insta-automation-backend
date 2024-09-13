@@ -61,7 +61,7 @@ class InstaService {
       await delay(2000);
     }
   }
-  async fetchUserIdFromDmLinks(links: string[], batchSize = 2) {
+  async fetchUserIdFromDmLinks(links: any[], batchSize = 2) {
     // let batchSize = 2;
     let profileData: any = [];
     console.log("links :", links.length);
@@ -72,11 +72,11 @@ class InstaService {
       console.log("batch Links :", batchLinks);
       console.log("current index :", i * batchSize);
 
-      let promises = batchLinks.map(async (link) => {
+      let promises = batchLinks.map(async (fetchData) => {
         let newPage = await this.browser.newPage();
         try {
           let data: any = {};
-          await newPage.goto(link, { waitUntil: "networkidle2" });
+          await newPage.goto(fetchData.link, { waitUntil: "networkidle2" });
           await this.turnOffNotificationClick(newPage);
           let moreInfoIconElement = await newPage.$(
             "div > div.x1vjfegm > div > div > div > div > div > svg"
@@ -100,7 +100,8 @@ class InstaService {
             if (profileLink !== "") {
               data["profileUrl"] = profileLink;
               data["userId"] = profileLink.split("/")[3];
-              data["dmLink"] = link;
+              data["dmLink"] = fetchData.link;
+
               await newPage.goto(profileLink, { waitUntil: "networkidle2" });
 
               let accountCategorySelector =
@@ -177,6 +178,10 @@ class InstaService {
                         : "";
 
                       data["country"] = countryName;
+                      data = {
+                        ...data,
+                        ...fetchData,
+                      };
                     } catch (error) {
                       console.log(
                         "fail to find the account country element on profile page"
@@ -316,9 +321,9 @@ class InstaService {
       let i = 0;
       let previoursObjectLeng = -99;
       let repeatedSameValue = 0;
-      // console.log("limit :", limit);
+      // console.log("limit :", limit
 
-      while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
+      while (loadingDiv !== null && loadingDiv !== undefined) {
         loadingDiv = await page.$('[aria-label="Loading..."]');
         // get the chat user name , active status or last message time
         let chatsDiv = await page.$('[aria-label="Chats"]');

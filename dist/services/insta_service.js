@@ -83,11 +83,11 @@ class InstaService {
                 let batchLinks = tempLinks.splice(i, batchSize);
                 console.log("batch Links :", batchLinks);
                 console.log("current index :", i * batchSize);
-                let promises = batchLinks.map((link) => __awaiter(this, void 0, void 0, function* () {
+                let promises = batchLinks.map((fetchData) => __awaiter(this, void 0, void 0, function* () {
                     let newPage = yield this.browser.newPage();
                     try {
                         let data = {};
-                        yield newPage.goto(link, { waitUntil: "networkidle2" });
+                        yield newPage.goto(fetchData.link, { waitUntil: "networkidle2" });
                         yield this.turnOffNotificationClick(newPage);
                         let moreInfoIconElement = yield newPage.$("div > div.x1vjfegm > div > div > div > div > div > svg");
                         if (moreInfoIconElement !== undefined) {
@@ -107,7 +107,7 @@ class InstaService {
                             if (profileLink !== "") {
                                 data["profileUrl"] = profileLink;
                                 data["userId"] = profileLink.split("/")[3];
-                                data["dmLink"] = link;
+                                data["dmLink"] = fetchData.link;
                                 yield newPage.goto(profileLink, { waitUntil: "networkidle2" });
                                 let accountCategorySelector = "div > div.x1gryazu.xh8yej3.x10o80wk.x14k21rp.x17snn68.x6osk4m.x1porb0y.x8vgawa > section > main > div > header > section.xc3tme8.x1uhmqq1.x1xdureb.xo55r9g.x1vnunu7.x14tfgiu.xlrpkbc.xpoid6y.x16zxmhm.x6ikm8r.x10wlt62 > div > div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1n2onr6.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div";
                                 try {
@@ -162,6 +162,7 @@ class InstaService {
                                                     ? yield countryElement.evaluate((e) => e.innerText)
                                                     : "";
                                                 data["country"] = countryName;
+                                                data = Object.assign(Object.assign({}, data), fetchData);
                                             }
                                             catch (error) {
                                                 console.log("fail to find the account country element on profile page");
@@ -284,8 +285,8 @@ class InstaService {
                 let i = 0;
                 let previoursObjectLeng = -99;
                 let repeatedSameValue = 0;
-                // console.log("limit :", limit);
-                while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
+                // console.log("limit :", limit
+                while (loadingDiv !== null && loadingDiv !== undefined) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');
                     // get the chat user name , active status or last message time
                     let chatsDiv = yield page.$('[aria-label="Chats"]');
