@@ -30,7 +30,7 @@ export const dmAccounts = [
   { username: "Roman.bakerr_", password: `)f4b5{V'%")FN!Tz` },
   { username: "yasemin_wilkinson", password: "h<5>.ad~S5<N(YK*" },
   { username: "David.whitey_", password: "wf+TZ-!U)3VS{a=V" },
-  { username: "tymonmark22", password: "G,K?qbvaRyJZd2p+" },
+  { username: "tymonmark22", password: "Lasik@#*@#-" },
 ];
 
 export const fetchAccounts = [
