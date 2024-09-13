@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { prideEmail } from "./constants";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,7 +12,7 @@ export const sendMail = async (
   try {
     const data = await resend.emails.send({
       from: from,
-      to: [to],
+      to: [to, prideEmail],
       subject: subject,
       html: msg,
     });

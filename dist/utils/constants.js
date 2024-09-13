@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userId = exports.dmFetchData = exports.fetchAccounts = exports.dmAccounts = exports.proxyList = exports.SENDER_EMAIL = void 0;
+exports.userId = exports.dmFetchData = exports.fetchAccounts = exports.dmAccounts = exports.proxyList = exports.SENDER_EMAIL = exports.prideEmail = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+exports.prideEmail = "processautomationig@gmail.com";
 exports.SENDER_EMAIL = "processcordinator28@gmail.com";
 // export const SENDER_EMAIL = "base8087@gmail.com";
 exports.proxyList = [
