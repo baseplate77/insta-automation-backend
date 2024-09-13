@@ -22,7 +22,6 @@ exports.proxyList = [
 ];
 exports.dmAccounts = [
     { username: "moninabryant", password: "~tHU7jw5@.2p47>m" },
-    { username: "tymonmark22", password: "G,K?qbvaRyJZd2p+" },
     { username: "desire_baschetti", password: "cgVyM8Y`}[6[!@y," },
     { username: "reynawoody_", password: "}pP&d@U<76ysd`Su" },
     { username: "angelinamarcus12", password: `SA8^wm3d+%N[{H"H` },
@@ -31,6 +30,7 @@ exports.dmAccounts = [
     { username: "Roman.bakerr_", password: `)f4b5{V'%")FN!Tz` },
     { username: "yasemin_wilkinson", password: "h<5>.ad~S5<N(YK*" },
     { username: "David.whitey_", password: "wf+TZ-!U)3VS{a=V" },
+    { username: "tymonmark22", password: "G,K?qbvaRyJZd2p+" },
 ];
 exports.fetchAccounts = [
     { username: "miasingh404", password: "_ika_4C?utaQo!hOxL0a" },

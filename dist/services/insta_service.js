@@ -18,6 +18,7 @@ const ghost_cursor_1 = require("ghost-cursor");
 const delay_1 = __importDefault(require("../utils/delay"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const block_request_1 = require("../utils/block_request");
 class InstaService {
     init(userId, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -197,6 +198,7 @@ class InstaService {
                     throw "now auth page was provided";
                 if (this.browser === undefined)
                     throw "browser not define";
+                yield (0, block_request_1.blockResourceRequest)(page);
                 // response monitoring
                 page.on("response", (response) => __awaiter(this, void 0, void 0, function* () {
                     const url = response.url();
@@ -249,10 +251,10 @@ class InstaService {
                     // await page.content();
                 }
                 yield page.waitForSelector('[aria-label="Thread list"]');
-                // await delay(2000);
+                yield (0, delay_1.default)(1000);
                 // turn on notification dialoag handler ( CLICK NOT NOW )
                 yield this.turnOffNotificationClick(page, cursor);
-                yield (0, delay_1.default)(500);
+                yield (0, delay_1.default)(100);
                 // await page.evaluate(() => {
                 //   const buttons = Array.from(document.querySelectorAll("button"));
                 //   const button = buttons.find(
@@ -283,11 +285,11 @@ class InstaService {
                 let previoursObjectLeng = -99;
                 let repeatedSameValue = 0;
                 // console.log("limit :", limit);
-                while (loadingDiv !== null && loadingDiv !== undefined) {
+                while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
                     loadingDiv = yield page.$('[aria-label="Loading..."]');
                     // get the chat user name , active status or last message time
                     let chatsDiv = yield page.$('[aria-label="Chats"]');
-                    let dmListDiv = yield chatsDiv.$("div > div > div > div > div > div:nth-child(2) > div");
+                    let dmListDiv = yield chatsDiv.$("div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div");
                     let dmChildNodes = yield (dmListDiv === null || dmListDiv === void 0 ? void 0 : dmListDiv.$$(":scope > *"));
                     let keys = Object.keys(finaldata);
                     console.log("object keys length :", keys.length, dmChildNodes === null || dmChildNodes === void 0 ? void 0 : dmChildNodes.length);
@@ -352,7 +354,7 @@ class InstaService {
                     }
                     // scroll to fetch new dm
                     let randomdelay = Math.random() * 3 + 1;
-                    yield (0, delay_1.default)(randomdelay * 300);
+                    yield (0, delay_1.default)(randomdelay * 500);
                     let randomScroll = Math.floor(Math.random() * 6) + 4;
                     yield page.mouse.wheel({ deltaY: randomScroll * 100 });
                     // loadingDiv = await page.$('[aria-label="Loading..."]');

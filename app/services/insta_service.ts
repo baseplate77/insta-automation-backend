@@ -6,6 +6,7 @@ import delay from "../utils/delay";
 
 import fs from "fs";
 import path from "path";
+import { blockResourceRequest } from "../utils/block_request";
 
 class InstaService {
   private userId!: string;
@@ -210,7 +211,7 @@ class InstaService {
     try {
       if (page === undefined) throw "now auth page was provided";
       if (this.browser === undefined) throw "browser not define";
-
+      await blockResourceRequest(page);
       // response monitoring
       page.on("response", async (response) => {
         const url = response.url() as string;
@@ -278,10 +279,10 @@ class InstaService {
 
       await page.waitForSelector('[aria-label="Thread list"]');
 
-      // await delay(2000);
+      await delay(1000);
       // turn on notification dialoag handler ( CLICK NOT NOW )
       await this.turnOffNotificationClick(page, cursor);
-      await delay(500);
+      await delay(100);
       // await page.evaluate(() => {
       //   const buttons = Array.from(document.querySelectorAll("button"));
       //   const button = buttons.find(
@@ -317,13 +318,13 @@ class InstaService {
       let repeatedSameValue = 0;
       // console.log("limit :", limit);
 
-      while (loadingDiv !== null && loadingDiv !== undefined) {
+      while (loadingDiv !== null && loadingDiv !== undefined && limit > i) {
         loadingDiv = await page.$('[aria-label="Loading..."]');
         // get the chat user name , active status or last message time
         let chatsDiv = await page.$('[aria-label="Chats"]');
 
         let dmListDiv = await chatsDiv!.$(
-          "div > div > div > div > div > div:nth-child(2) > div"
+          "div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div"
         );
         let dmChildNodes = await dmListDiv?.$$(":scope > *");
 
@@ -420,7 +421,7 @@ class InstaService {
 
         // scroll to fetch new dm
         let randomdelay = Math.random() * 3 + 1;
-        await delay(randomdelay * 300);
+        await delay(randomdelay * 500);
         let randomScroll = Math.floor(Math.random() * 6) + 4;
         await page.mouse.wheel({ deltaY: randomScroll * 100 });
         // loadingDiv = await page.$('[aria-label="Loading..."]');
