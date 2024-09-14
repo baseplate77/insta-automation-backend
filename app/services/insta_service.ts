@@ -484,6 +484,7 @@ class InstaService {
         );
         await page.goto("https://www.instagram.com/", {
           waitUntil: ["load", "networkidle0"],
+          timeout: 900000,
         });
         let cursor = createCursor(page);
 

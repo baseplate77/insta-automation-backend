@@ -25,7 +25,7 @@ export const dmAccounts = [
   { username: "desire_baschetti", password: "cgVyM8Y`}[6[!@y," },
   { username: "reynawoody_", password: "}pP&d@U<76ysd`Su" },
   { username: "angelinamarcus12", password: `SA8^wm3d+%N[{H"H` },
-  { username: "eileen_ramona_01", password: "PrideBack@up345" },
+  { username: "eileen_ramona_01", password: "Pride@123" },
   { username: "Kai_Nelsonn", password: `pK>x#cHp8K\\]q["Q` },
   { username: "Roman.bakerr_", password: `)f4b5{V'%")FN!Tz` },
   { username: "yasemin_wilkinson", password: "h<5>.ad~S5<N(YK*" },

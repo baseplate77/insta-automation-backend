@@ -413,6 +413,7 @@ class InstaService {
                     console.log("No cookies file found. Please login first to save cookies.");
                     yield page.goto("https://www.instagram.com/", {
                         waitUntil: ["load", "networkidle0"],
+                        timeout: 900000,
                     });
                     let cursor = (0, ghost_cursor_1.createCursor)(page);
                     yield cursor.click('input[name="username"]');
