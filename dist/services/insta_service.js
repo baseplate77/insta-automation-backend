@@ -443,7 +443,7 @@ class InstaService {
                         console.error("Error saving cookies:", error);
                     }
                     yield this.saveInfoNotNow(page, cursor);
-                    yield page.waitForSelector("section > main");
+                    yield page.waitForSelector("section > main", { timeout: 0 });
                     yield (0, delay_1.default)(1000);
                 }
                 return page;

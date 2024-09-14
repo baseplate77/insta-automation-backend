@@ -520,7 +520,7 @@ class InstaService {
           console.error("Error saving cookies:", error);
         }
         await this.saveInfoNotNow(page, cursor);
-        await page.waitForSelector("section > main");
+        await page.waitForSelector("section > main", { timeout: 0 });
         await delay(1000);
       }
 
