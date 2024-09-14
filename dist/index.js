@@ -165,14 +165,24 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     fs_1.default.writeFileSync(path_1.default.join(__dirname, `finalData-${index}.json`), JSON.stringify(links));
     // console.log("final data :", finaldata);
     // scan the ids
-    instaServive = new insta_service_1.default();
-    let fetchAccount = constants_1.fetchAccounts[index];
-    yield instaServive.init(fetchAccount.username, fetchAccount.password);
-    yield instaServive.logIn({ cookieLogin: true, index: index });
-    let userids = yield instaServive.fetchUserIdFromDmLinks(links);
-    yield instaServive.dispose();
+    let linksPerAccount = 2;
+    let noOfAccount = 20;
+    let userIds = [];
+    for (let i = 0; i < links.length; i += linksPerAccount) {
+        let accountLinks = links.splice(i, linksPerAccount);
+        console.log("account Link :", accountLinks);
+        instaServive = new insta_service_1.default();
+        let accountNo = (i / linksPerAccount) % noOfAccount;
+        let fetchAccount = constants_1.fetchAccounts[accountNo];
+        console.log("fetch account :", fetchAccount, accountNo);
+        yield instaServive.init(fetchAccount.username, fetchAccount.password);
+        yield instaServive.logIn({ cookieLogin: true, index: index });
+        let tempId = yield instaServive.fetchUserIdFromDmLinks(accountLinks);
+        userIds.push(...tempId);
+        yield instaServive.dispose();
+    }
     const wb = xlsx_1.default.utils.book_new();
-    const ws = xlsx_1.default.utils.json_to_sheet(userids);
+    const ws = xlsx_1.default.utils.json_to_sheet(userIds);
     // Append the worksheet to the workbook
     xlsx_1.default.utils.book_append_sheet(wb, ws, "UserIDs");
     // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });

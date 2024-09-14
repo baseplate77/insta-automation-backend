@@ -44,6 +44,16 @@ export const fetchAccounts = [
   { username: "charlotteclark9466", password: "_ika_4C?utaQo!hOxL0a" },
   { username: "sophialewis3862", password: "_ika_4C?utaQo!hOxL0a" },
   { username: "welshwanderer2024", password: "t#y8PhePHLru5rEnoFl5" },
+  { username: "kazak_hking", password: "t#y8PhePHLru5rEnoFl5" },
+  { username: "emily_smith6212", password: "gute3lstO#uf4O82d$dr" },
+  { username: "emmabrown5500", password: "gute3lstO#uf4O82d$dr" },
+  { username: "amelia_wilson_332", password: "_ika_4C?utaQo!hOxL0a" },
+  { username: "ellapatel6622", password: "_ika_4C?utaQo!hOxL0a" },
+  { username: "lilywright2024", password: "_ika_4C?utaQo!hOxL0a" },
+  { username: "isabellarobinson2024", password: "_ika_4C?utaQo!hOxL0a" },
+  { username: "turkishtrailblazer", password: "t#y8PhePHLru5rEnoFl5" },
+  { username: "tajiktraveler2024", password: "t#y8PhePHLru5rEnoFl5" },
+  { username: "kyrgyzkeen", password: "gute3lstO#uf4O82d$dr" },
 ];
 
 export const dmFetchData = {

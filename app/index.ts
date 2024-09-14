@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
-import fs from "fs";
+import fs, { link } from "fs";
 import path from "path";
 import xlsx from "xlsx";
 import InstaService from "./services/insta_service";
@@ -197,21 +197,30 @@ app.get("/test", async (req: Request, res: Response) => {
   // console.log("final data :", finaldata);
 
   // scan the ids
+  let linksPerAccount = 2;
+  let noOfAccount = 20;
+  let userIds: any[] = [];
+  for (let i = 0; i < links.length; i += linksPerAccount) {
+    let accountLinks = links.splice(i, linksPerAccount);
+    console.log("account Link :", accountLinks);
 
-  instaServive = new InstaService();
+    instaServive = new InstaService();
 
-  let fetchAccount = fetchAccounts[index];
+    let accountNo = (i / linksPerAccount) % noOfAccount;
+    let fetchAccount = fetchAccounts[accountNo];
+    console.log("fetch account :", fetchAccount, accountNo);
 
-  await instaServive.init(fetchAccount.username, fetchAccount.password);
+    await instaServive.init(fetchAccount.username, fetchAccount.password);
 
-  await instaServive.logIn({ cookieLogin: true, index: index });
+    await instaServive.logIn({ cookieLogin: true, index: index });
 
-  let userids = await instaServive.fetchUserIdFromDmLinks(links);
-
-  await instaServive.dispose();
+    let tempId = await instaServive.fetchUserIdFromDmLinks(accountLinks);
+    userIds.push(...tempId);
+    await instaServive.dispose();
+  }
 
   const wb = xlsx.utils.book_new();
-  const ws = xlsx.utils.json_to_sheet(userids);
+  const ws = xlsx.utils.json_to_sheet(userIds);
 
   // Append the worksheet to the workbook
   xlsx.utils.book_append_sheet(wb, ws, "UserIDs");

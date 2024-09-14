@@ -61,7 +61,11 @@ class InstaService {
       await delay(2000);
     }
   }
-  async fetchUserIdFromDmLinks(links: any[], batchSize = 2) {
+  async fetchUserIdFromDmLinks(
+    links: any[],
+    batchSize = 2,
+    linkPerAccount = 5
+  ) {
     // let batchSize = 2;
     let profileData: any = [];
     console.log("links :", links.length);
@@ -178,10 +182,6 @@ class InstaService {
                         : "";
 
                       data["country"] = countryName;
-                      data = {
-                        ...data,
-                        ...fetchData,
-                      };
                     } catch (error) {
                       console.log(
                         "fail to find the account country element on profile page"
@@ -194,6 +194,10 @@ class InstaService {
                   );
                 }
               }
+              data = {
+                ...fetchData,
+                ...data,
+              };
               profileData.push(data);
             }
           }
@@ -317,7 +321,7 @@ class InstaService {
       });
       let loadingDiv = await page.$('[aria-label="Loading..."]');
 
-      let limit = 2;
+      let limit = 20;
       let i = 0;
       let previoursObjectLeng = -99;
       let repeatedSameValue = 0;
@@ -337,92 +341,92 @@ class InstaService {
         console.log("object keys length :", keys.length, dmChildNodes?.length);
 
         if (previoursObjectLeng === keys.length) {
-          if (repeatedSameValue === 3) break;
+          if (repeatedSameValue === 5) break;
           repeatedSameValue++;
         } else {
           repeatedSameValue = 0;
           previoursObjectLeng = keys.length;
         }
 
-        for (let index = 0; index < dmChildNodes!.length; index++) {
-          // data already exist return
-          if (
-            finaldata[keys[index]] !== undefined &&
-            finaldata[keys[index]]["userName"] === undefined &&
-            keys.length > index
-          ) {
-            try {
-              const element = dmChildNodes![index];
+        // for (let index = 0; index < dmChildNodes!.length; index++) {
+        //   // data already exist return
+        //   if (
+        //     finaldata[keys[index]] !== undefined &&
+        //     finaldata[keys[index]]["userName"] === undefined &&
+        //     keys.length > index
+        //   ) {
+        //     try {
+        //       const element = dmChildNodes![index];
 
-              await element.scrollIntoView();
+        //       await element.scrollIntoView();
 
-              await delay(300);
-              let userNameSelector =
-                "span.x1lliihq.x1plvlek.xryxfnj.x1n2onr6.x193iq5w.xeuugli.x1fj9vlw.x13faqbe.x1vvkbs.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x1i0vuye.xvs91rp.xo1l8bm.x5n08af.x1tu3fi.x3x7a5m.x10wh9bi.x1wdrske.x8viiok.x18hxmgj > span";
+        //       await delay(300);
+        //       let userNameSelector =
+        //         "span.x1lliihq.x1plvlek.xryxfnj.x1n2onr6.x193iq5w.xeuugli.x1fj9vlw.x13faqbe.x1vvkbs.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x1i0vuye.xvs91rp.xo1l8bm.x5n08af.x1tu3fi.x3x7a5m.x10wh9bi.x1wdrske.x8viiok.x18hxmgj > span";
 
-              let userName;
-              try {
-                // element.waitForSelector(userNameSelector, { timeout: 5_000 });
-                userName = await element.$eval(
-                  userNameSelector,
-                  (e: any) => e.innerText
-                );
-              } catch (error) {
-                console.log("error :", error);
-                userName = "";
-              }
+        //       let userName;
+        //       try {
+        //         // element.waitForSelector(userNameSelector, { timeout: 5_000 });
+        //         userName = await element.$eval(
+        //           userNameSelector,
+        //           (e: any) => e.innerText
+        //         );
+        //       } catch (error) {
+        //         console.log("error :", error);
+        //         userName = "";
+        //       }
 
-              let lastActiveElement = await element.$(
-                "div > div:nth-child(3) > div > span > span"
-              );
-              let lastActive = lastActiveElement
-                ? await lastActiveElement.evaluate((e) => e.innerText)
-                : "";
+        //       let lastActiveElement = await element.$(
+        //         "div > div:nth-child(3) > div > span > span"
+        //       );
+        //       let lastActive = lastActiveElement
+        //         ? await lastActiveElement.evaluate((e) => e.innerText)
+        //         : "";
 
-              lastActive = lastActive.toLocaleLowerCase().includes("active")
-                ? lastActive.split("\n")[1]
-                : "";
-              let lastMsgDateElement = await element.$(
-                "div > div:nth-child(3) > div > div > span > span > div > span"
-              );
-              let lastMsgDate = lastMsgDateElement
-                ? await lastMsgDateElement.evaluate((e) => e.innerText)
-                : "";
+        //       lastActive = lastActive.toLocaleLowerCase().includes("active")
+        //         ? lastActive.split("\n")[1]
+        //         : "";
+        //       let lastMsgDateElement = await element.$(
+        //         "div > div:nth-child(3) > div > div > span > span > div > span"
+        //       );
+        //       let lastMsgDate = lastMsgDateElement
+        //         ? await lastMsgDateElement.evaluate((e) => e.innerText)
+        //         : "";
 
-              finaldata[keys[index]] = {
-                userName,
-                lastActive,
-                lastMsgDate,
-                ...finaldata[keys[index]],
-              };
-              console.log("found data of ", index, keys[index]);
+        //       finaldata[keys[index]] = {
+        //         userName,
+        //         lastActive,
+        //         lastMsgDate,
+        //         ...finaldata[keys[index]],
+        //       };
+        //       console.log("found data of ", index, keys[index]);
 
-              // console.log(
-              //   index,
-              //   "data :",
-              //   userName,
-              //   "\n",
-              //   lastActive,
-              //   "\n",
-              //   lastMsgDate
-              // );
-            } catch (error) {
-              finaldata[keys[index]] = {
-                userName: "",
-                lastActive: "",
-                lastMsgDate: "",
-                ...finaldata[keys[index]],
-              };
-              console.log(
-                "error :",
-                index,
-                keys.length > index ? keys[index] : "index is higher than key",
-                "\n",
-                error
-              );
-            }
-          }
-        }
+        //       // console.log(
+        //       //   index,
+        //       //   "data :",
+        //       //   userName,
+        //       //   "\n",
+        //       //   lastActive,
+        //       //   "\n",
+        //       //   lastMsgDate
+        //       // );
+        //     } catch (error) {
+        //       finaldata[keys[index]] = {
+        //         userName: "",
+        //         lastActive: "",
+        //         lastMsgDate: "",
+        //         ...finaldata[keys[index]],
+        //       };
+        //       console.log(
+        //         "error :",
+        //         index,
+        //         keys.length > index ? keys[index] : "index is higher than key",
+        //         "\n",
+        //         error
+        //       );
+        //     }
+        //   }
+        // }
 
         // scroll to fetch new dm
         let randomdelay = Math.random() * 3 + 1;
