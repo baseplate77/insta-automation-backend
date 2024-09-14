@@ -106,12 +106,12 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
   // for (let index = 0; index < dmAccounts.length; index++) {
   var startTime = performance.now();
 
-  const dmAccount = fetchAccounts[index];
+  const dmAccount = dmAccounts[index];
   console.log("account :", dmAccount);
   let instaServive = new InstaService();
 
   await instaServive.init(dmAccount.username, dmAccount.password);
-  let page = await instaServive.logIn({ cookieLogin: true, index: index + 10 });
+  let page = await instaServive.logIn({ cookieLogin: true, index: index });
   // note after login need to handle the save info click to not now
   console.log("login completeddd");
 

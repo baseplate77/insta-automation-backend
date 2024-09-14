@@ -452,7 +452,7 @@ class InstaService {
                 let repeatedSameValue = 0;
                 // console.log("limit :", limit
                 // await delay(20000000);
-                while (repeatedSameValue !== 1) {
+                while (repeatedSameValue !== 3) {
                     loadingDiv = yield page.$(loadingDivSelector);
                     // get the chat user name , active status or last message time
                     let chatsDiv = yield page.$('[aria-label="Chats"]');

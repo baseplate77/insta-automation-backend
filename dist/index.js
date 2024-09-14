@@ -99,11 +99,11 @@ app.get("/scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     // // get dm links
     // for (let index = 0; index < dmAccounts.length; index++) {
     var startTime = performance.now();
-    const dmAccount = constants_1.fetchAccounts[index];
+    const dmAccount = constants_1.dmAccounts[index];
     console.log("account :", dmAccount);
     let instaServive = new insta_service_1.default();
     yield instaServive.init(dmAccount.username, dmAccount.password);
-    let page = yield instaServive.logIn({ cookieLogin: true, index: index + 10 });
+    let page = yield instaServive.logIn({ cookieLogin: true, index: index });
     // note after login need to handle the save info click to not now
     console.log("login completeddd");
     let finaldata = yield instaServive.scanDMs(page);
