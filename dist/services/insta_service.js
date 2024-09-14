@@ -18,7 +18,6 @@ const ghost_cursor_1 = require("ghost-cursor");
 const delay_1 = __importDefault(require("../utils/delay"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const block_request_1 = require("../utils/block_request");
 class InstaService {
     init(userId, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -199,7 +198,7 @@ class InstaService {
                     throw "now auth page was provided";
                 if (this.browser === undefined)
                     throw "browser not define";
-                yield (0, block_request_1.blockResourceRequest)(page);
+                // await blockResourceRequest(page);
                 // response monitoring
                 page.on("response", (response) => __awaiter(this, void 0, void 0, function* () {
                     const url = response.url();

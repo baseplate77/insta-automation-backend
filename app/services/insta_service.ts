@@ -220,7 +220,7 @@ class InstaService {
     try {
       if (page === undefined) throw "now auth page was provided";
       if (this.browser === undefined) throw "browser not define";
-      await blockResourceRequest(page);
+      // await blockResourceRequest(page);
       // response monitoring
       page.on("response", async (response) => {
         const url = response.url() as string;
