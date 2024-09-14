@@ -99,11 +99,11 @@ app.get("/scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     // // get dm links
     // for (let index = 0; index < dmAccounts.length; index++) {
     var startTime = performance.now();
-    const dmAccount = constants_1.dmAccounts[index];
+    const dmAccount = constants_1.fetchAccounts[index];
     console.log("account :", dmAccount);
     let instaServive = new insta_service_1.default();
     yield instaServive.init(dmAccount.username, dmAccount.password);
-    let page = yield instaServive.logIn({ cookieLogin: true, index });
+    let page = yield instaServive.logIn({ cookieLogin: true, index: index + 10 });
     // note after login need to handle the save info click to not now
     console.log("login completeddd");
     let finaldata = yield instaServive.scanDMs(page);
@@ -147,15 +147,18 @@ app.get("/send-msg", (req, res) => __awaiter(void 0, void 0, void 0, function* (
     let { accNumber } = req.query;
     let index = parseInt((_a = accNumber) !== null && _a !== void 0 ? _a : "0");
     let links = [
-        "https://www.instagram.com/direct/t/107775853957756/",
-        "https://www.instagram.com/direct/t/103569851044282/",
-        "https://www.instagram.com/direct/t/115515829838980/",
-        "https://www.instagram.com/direct/t/17842088849096527/",
-        "https://www.instagram.com/direct/t/119368462786964/",
-        "https://www.instagram.com/direct/t/103980751005186/",
-        "https://www.instagram.com/direct/t/111939926858978/",
-        "https://www.instagram.com/direct/t/113536340193789/",
-        "https://www.instagram.com/direct/t/111822650205394/",
+        "https://www.instagram.com/direct/t/118002332921612/",
+        "https://www.instagram.com/direct/t/104112324321190/",
+        "https://www.instagram.com/direct/t/118002332921612/",
+        // "https://www.instagram.com/direct/t/107775853957756/",
+        // "https://www.instagram.com/direct/t/103569851044282/",
+        // "https://www.instagram.com/direct/t/115515829838980/",
+        // "https://www.instagram.com/direct/t/17842088849096527/",
+        // "https://www.instagram.com/direct/t/119368462786964/",
+        // "https://www.instagram.com/direct/t/103980751005186/",
+        // "https://www.instagram.com/direct/t/111939926858978/",
+        // "https://www.instagram.com/direct/t/113536340193789/",
+        // "https://www.instagram.com/direct/t/111822650205394/",
         // "https://www.instagram.com/direct/t/122784635777726/",
         // "https://www.instagram.com/direct/t/117914032930523/",
         // "https://www.instagram.com/direct/t/112948393434025/",
@@ -163,10 +166,13 @@ app.get("/send-msg", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         // "https://www.instagram.com/direct/t/17845396595519528/",
     ];
     try {
-        let dmAccount = constants_1.dmAccounts[index];
+        let dmAccount = constants_1.fetchAccounts[index];
         let instaServive = new insta_service_1.default();
         yield instaServive.init(dmAccount.username, dmAccount.password);
-        let page = yield instaServive.logIn({ cookieLogin: true, index });
+        let page = yield instaServive.logIn({
+            cookieLogin: true,
+            index: index + 10,
+        });
         let startTime = performance.now();
         let data = yield instaServive.sendDMAndFetchData(links);
         const wb = xlsx_1.default.utils.book_new();

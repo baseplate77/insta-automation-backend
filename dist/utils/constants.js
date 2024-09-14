@@ -26,7 +26,7 @@ exports.dmAccounts = [
     { username: "desire_baschetti", password: "cgVyM8Y`}[6[!@y," },
     { username: "reynawoody_", password: "}pP&d@U<76ysd`Su" },
     { username: "angelinamarcus12", password: `SA8^wm3d+%N[{H"H` },
-    { username: "eileen_ramona_01", password: "Pride@123" },
+    { username: "eileen_ramona_01", password: "pride@1234" },
     { username: "Kai_Nelsonn", password: `pK>x#cHp8K\\]q["Q` },
     { username: "Roman.bakerr_", password: `)f4b5{V'%")FN!Tz` },
     { username: "yasemin_wilkinson", password: "h<5>.ad~S5<N(YK*" },
@@ -54,6 +54,7 @@ exports.fetchAccounts = [
     { username: "turkishtrailblazer", password: "t#y8PhePHLru5rEnoFl5" },
     { username: "tajiktraveler2024", password: "t#y8PhePHLru5rEnoFl5" },
     { username: "kyrgyzkeen", password: "gute3lstO#uf4O82d$dr" },
+    { username: "vaticanvoyager", password: "d=koda61LdubrAdruvLT" },
 ];
 exports.dmFetchData = {
     "/direct/t/122730042452544/": {

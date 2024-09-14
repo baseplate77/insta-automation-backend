@@ -54,6 +54,7 @@ export const fetchAccounts = [
   { username: "turkishtrailblazer", password: "t#y8PhePHLru5rEnoFl5" },
   { username: "tajiktraveler2024", password: "t#y8PhePHLru5rEnoFl5" },
   { username: "kyrgyzkeen", password: "gute3lstO#uf4O82d$dr" },
+  { username: "vaticanvoyager", password: "d=koda61LdubrAdruvLT" },
 ];
 
 export const dmFetchData = {

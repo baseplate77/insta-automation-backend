@@ -379,8 +379,8 @@ class InstaService {
 
         await messageInputElement.type(`Hi @${userId}`, { delay: 100 });
         await delay(500);
-        // await page.keyboard.press("Tab");
-        // await page.keyboard.press("Enter")
+        await page.keyboard.press("Tab");
+        await page.keyboard.press("Enter");
         await delay(2000);
       } catch (error) {
         console.log("error :", error);
@@ -410,7 +410,47 @@ class InstaService {
           // Parse the cleaned JSON string
           let jsonObject = JSON.parse(cleanData);
           let request = response.request();
-          //   console.log("header : ", request.postData());
+          let payload = request.postData();
+
+          const params = new URLSearchParams(payload);
+          const jsonObject2: any = {};
+          for (const [key, value] of params.entries()) {
+            const decodedKey = decodeURIComponent(key);
+            const decodedValue = decodeURIComponent(value);
+
+            // Handle nested keys like route_urls[0]
+            const keyMatch = decodedKey.match(/([^\[]+)\[([^\]]+)\]/);
+            if (keyMatch) {
+              const mainKey = keyMatch[1];
+              const subKey = keyMatch[2];
+              if (!jsonObject2[mainKey]) {
+                jsonObject2[mainKey] = {};
+              }
+              jsonObject2[mainKey][subKey] = decodedValue;
+            } else {
+              jsonObject2[decodedKey] = decodedValue;
+            }
+          }
+
+          if (jsonObject2["route_urls"] !== undefined) {
+            for (
+              let index = 0;
+              index < Object.values(jsonObject2["route_urls"]).length;
+              index++
+            ) {
+              const inboxUrl = Object.values(jsonObject2["route_urls"])[
+                index
+              ] as string;
+              if (
+                finaldata[inboxUrl] === undefined &&
+                inboxUrl.includes("direct/t/")
+              ) {
+                finaldata[inboxUrl] = {
+                  link: "https://www.instagram.com" + inboxUrl,
+                };
+              }
+            }
+          }
 
           if (
             jsonObject["payload"] !== undefined &&
@@ -497,21 +537,26 @@ class InstaService {
         x: boundingBox!.x + boundingBox!.width / 2,
         y: boundingBox!.y + boundingBox!.height / 2,
       });
-      let loadingDiv = await page.$('[aria-label="Loading..."]');
+
+      let loadingDivSelector = '[aria-label="Loading..."]';
+
+      let loadingDiv = await threadListSection?.$(loadingDivSelector);
+      console.log("loadng :", loadingDiv);
 
       let limit = 20;
       let i = 0;
       let previoursObjectLeng = -99;
       let repeatedSameValue = 0;
       // console.log("limit :", limit
+      // await delay(20000000);
+      while (repeatedSameValue !== 3) {
+        loadingDiv = await page.$(loadingDivSelector);
 
-      while (loadingDiv !== null && loadingDiv !== undefined) {
-        loadingDiv = await page.$('[aria-label="Loading..."]');
         // get the chat user name , active status or last message time
         let chatsDiv = await page.$('[aria-label="Chats"]');
 
         let dmListDiv = await chatsDiv!.$(
-          "div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div"
+          "div.x9f619.x1n2onr6.x1ja2u2z.x78zum5.xdt5ytf.x2lah0s.x193iq5w.xeuugli.xvbhtw8 > div > div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div"
         );
         let dmChildNodes = await dmListDiv?.$$(":scope > *");
 
@@ -525,6 +570,7 @@ class InstaService {
           repeatedSameValue = 0;
           previoursObjectLeng = keys.length;
         }
+        console.log("repeatvalue :", 0);
 
         // for (let index = 0; index < dmChildNodes!.length; index++) {
         //   // data already exist return
@@ -615,7 +661,6 @@ class InstaService {
 
         i++;
       }
-
       console.log("end of while loop");
 
       return finaldata;

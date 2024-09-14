@@ -309,8 +309,8 @@ class InstaService {
                     cursor.click(messageInputSelector);
                     yield messageInputElement.type(`Hi @${userId}`, { delay: 100 });
                     yield (0, delay_1.default)(500);
-                    // await page.keyboard.press("Tab");
-                    // await page.keyboard.press("Enter")
+                    yield page.keyboard.press("Tab");
+                    yield page.keyboard.press("Enter");
                     yield (0, delay_1.default)(2000);
                 }
                 catch (error) {
@@ -342,7 +342,37 @@ class InstaService {
                         // Parse the cleaned JSON string
                         let jsonObject = JSON.parse(cleanData);
                         let request = response.request();
-                        //   console.log("header : ", request.postData());
+                        let payload = request.postData();
+                        const params = new URLSearchParams(payload);
+                        const jsonObject2 = {};
+                        for (const [key, value] of params.entries()) {
+                            const decodedKey = decodeURIComponent(key);
+                            const decodedValue = decodeURIComponent(value);
+                            // Handle nested keys like route_urls[0]
+                            const keyMatch = decodedKey.match(/([^\[]+)\[([^\]]+)\]/);
+                            if (keyMatch) {
+                                const mainKey = keyMatch[1];
+                                const subKey = keyMatch[2];
+                                if (!jsonObject2[mainKey]) {
+                                    jsonObject2[mainKey] = {};
+                                }
+                                jsonObject2[mainKey][subKey] = decodedValue;
+                            }
+                            else {
+                                jsonObject2[decodedKey] = decodedValue;
+                            }
+                        }
+                        if (jsonObject2["route_urls"] !== undefined) {
+                            for (let index = 0; index < Object.values(jsonObject2["route_urls"]).length; index++) {
+                                const inboxUrl = Object.values(jsonObject2["route_urls"])[index];
+                                if (finaldata[inboxUrl] === undefined &&
+                                    inboxUrl.includes("direct/t/")) {
+                                    finaldata[inboxUrl] = {
+                                        link: "https://www.instagram.com" + inboxUrl,
+                                    };
+                                }
+                            }
+                        }
                         if (jsonObject["payload"] !== undefined &&
                             jsonObject["payload"]["payloads"] !== undefined &&
                             /\d/.test(Object.keys(jsonObject["payload"]["payloads"])[0])) {
@@ -413,17 +443,20 @@ class InstaService {
                     x: boundingBox.x + boundingBox.width / 2,
                     y: boundingBox.y + boundingBox.height / 2,
                 });
-                let loadingDiv = yield page.$('[aria-label="Loading..."]');
+                let loadingDivSelector = '[aria-label="Loading..."]';
+                let loadingDiv = yield (threadListSection === null || threadListSection === void 0 ? void 0 : threadListSection.$(loadingDivSelector));
+                console.log("loadng :", loadingDiv);
                 let limit = 20;
                 let i = 0;
                 let previoursObjectLeng = -99;
                 let repeatedSameValue = 0;
                 // console.log("limit :", limit
-                while (loadingDiv !== null && loadingDiv !== undefined) {
-                    loadingDiv = yield page.$('[aria-label="Loading..."]');
+                // await delay(20000000);
+                while (repeatedSameValue !== 1) {
+                    loadingDiv = yield page.$(loadingDivSelector);
                     // get the chat user name , active status or last message time
                     let chatsDiv = yield page.$('[aria-label="Chats"]');
-                    let dmListDiv = yield chatsDiv.$("div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div");
+                    let dmListDiv = yield chatsDiv.$("div.x9f619.x1n2onr6.x1ja2u2z.x78zum5.xdt5ytf.x2lah0s.x193iq5w.xeuugli.xvbhtw8 > div > div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div");
                     let dmChildNodes = yield (dmListDiv === null || dmListDiv === void 0 ? void 0 : dmListDiv.$$(":scope > *"));
                     let keys = Object.keys(finaldata);
                     console.log("object keys length :", keys.length, dmChildNodes === null || dmChildNodes === void 0 ? void 0 : dmChildNodes.length);
@@ -436,6 +469,7 @@ class InstaService {
                         repeatedSameValue = 0;
                         previoursObjectLeng = keys.length;
                     }
+                    console.log("repeatvalue :", 0);
                     // for (let index = 0; index < dmChildNodes!.length; index++) {
                     //   // data already exist return
                     //   if (
