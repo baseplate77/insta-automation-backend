@@ -547,9 +547,7 @@ class InstaService {
       let i = 0;
       let previoursObjectLeng = -99;
       let repeatedSameValue = 0;
-      // console.log("limit :", limit
-      // await delay(20000000);
-      while (repeatedSameValue !== 3) {
+      while (loadingDiv !== null && loadingDiv !== undefined) {
         loadingDiv = await page.$(loadingDivSelector);
 
         // get the chat user name , active status or last message time
