@@ -385,7 +385,6 @@ class InstaService {
                                     };
                                 }
                             }
-                            yield (0, delay_1.default)(2000);
                             // let inboxLinks = Object.keys(finaldata).map(
                             //   (d) => "https://www.instagram.com" + d
                             // );
@@ -445,7 +444,6 @@ class InstaService {
                 });
                 let loadingDivSelector = '[aria-label="Loading..."]';
                 let loadingDiv = yield (threadListSection === null || threadListSection === void 0 ? void 0 : threadListSection.$(loadingDivSelector));
-                console.log("loadng :", loadingDiv);
                 let limit = 20;
                 let i = 0;
                 let previoursObjectLeng = -99;
@@ -453,11 +451,13 @@ class InstaService {
                 while (loadingDiv !== null && loadingDiv !== undefined) {
                     loadingDiv = yield page.$(loadingDivSelector);
                     // get the chat user name , active status or last message time
-                    let chatsDiv = yield page.$('[aria-label="Chats"]');
-                    let dmListDiv = yield chatsDiv.$("div.x9f619.x1n2onr6.x1ja2u2z.x78zum5.xdt5ytf.x2lah0s.x193iq5w.xeuugli.xvbhtw8 > div > div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div");
-                    let dmChildNodes = yield (dmListDiv === null || dmListDiv === void 0 ? void 0 : dmListDiv.$$(":scope > *"));
+                    // let chatsDiv = await page.$('[aria-label="Chats"]');
+                    // let dmListDiv = await chatsDiv!.$(
+                    //   "div.x9f619.x1n2onr6.x1ja2u2z.x78zum5.xdt5ytf.x2lah0s.x193iq5w.xeuugli.xvbhtw8 > div > div.x78zum5.xdt5ytf.x1iyjqo2.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div:nth-child(2) > div"
+                    // );
+                    // let dmChildNodes = await dmListDiv?.$$(":scope > *");
                     let keys = Object.keys(finaldata);
-                    console.log("object keys length :", keys.length, dmChildNodes === null || dmChildNodes === void 0 ? void 0 : dmChildNodes.length);
+                    console.log("scan links count :", keys.length);
                     if (previoursObjectLeng === keys.length) {
                         if (repeatedSameValue === 5)
                             break;
@@ -467,7 +467,6 @@ class InstaService {
                         repeatedSameValue = 0;
                         previoursObjectLeng = keys.length;
                     }
-                    console.log("repeatvalue :", 0);
                     // for (let index = 0; index < dmChildNodes!.length; index++) {
                     //   // data already exist return
                     //   if (
@@ -542,9 +541,9 @@ class InstaService {
                     // }
                     // scroll to fetch new dm
                     let randomdelay = Math.random() * 3 + 1;
-                    yield (0, delay_1.default)(randomdelay * 1000);
-                    // let randomScroll = Math.floor(Math.random() * 6) + 4;
-                    yield page.mouse.wheel({ deltaY: 200 });
+                    yield (0, delay_1.default)(randomdelay * 500);
+                    let randomScroll = Math.floor(Math.random() * 6) + 4;
+                    yield page.mouse.wheel({ deltaY: randomScroll * 100 });
                     // loadingDiv = await page.$('[aria-label="Loading..."]');
                     i++;
                 }
