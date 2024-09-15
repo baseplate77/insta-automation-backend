@@ -9,5 +9,6 @@ const accountSchema = new mongoose_1.default.Schema({
     usename: String,
     password: String,
     cookie: mongoose_1.default.Schema.Types.Mixed,
+    dm: mongoose_1.default.Schema.Types.Array,
 });
 exports.accountModel = mongoose_1.default.model("account", accountSchema);

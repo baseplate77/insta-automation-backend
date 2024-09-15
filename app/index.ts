@@ -9,6 +9,8 @@ import { amdin } from "./utils/firebase";
 import { sendMail } from "./utils/resend";
 import DBService from "./db/db_service";
 import { accountModel } from "./db/schema/account.schema";
+import delay from "./utils/delay";
+import { decrypt, encrypt } from "./utils/encrypt";
 dotenv.config();
 
 const app: Express = express();
@@ -33,6 +35,15 @@ const dbTest = async () => {
 
 // dbTest();
 app.get("/", async (req: Request, res: Response) => {
+  let testKey = "hello you";
+
+  let encrpyt = encrypt(testKey);
+  console.log("emcrypt:", encrpyt);
+
+  let decrpt = decrypt(encrpyt);
+
+  console.log("decrpyt :", decrpt);
+
   res.send("ok");
 });
 
@@ -114,14 +125,21 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
   let page = await instaServive.logIn({ cookieLogin: true, index: index });
   // note after login need to handle the save info click to not now
   console.log("login completeddd");
-
+  // await delay(10000000);
   let finaldata = await instaServive.scanDMs(page);
   let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
+
+  let links = Object.keys(finaldata).map((dmData) => finaldata[dmData]["link"]);
+  console.log("data :", links);
+
+  let data = await instaServive.sendDMAndFetchData(links);
+
+  console.log("data :", data);
 
   await instaServive.dispose();
 
   const wb = xlsx.utils.book_new();
-  const ws = xlsx.utils.json_to_sheet(details);
+  const ws = xlsx.utils.json_to_sheet(data);
 
   // Append the worksheet to the workbook
   xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
@@ -168,14 +186,8 @@ app.get("/send-msg", async (req: Request, res: Response) => {
   let index = parseInt((accNumber as string) ?? "0");
 
   let links = [
-    "https://www.instagram.com/direct/t/118002332921612/",
-    "https://www.instagram.com/direct/t/104112324321190/",
-    "https://www.instagram.com/direct/t/118002332921612/",
-    // "https://www.instagram.com/direct/t/107775853957756/",
-    // "https://www.instagram.com/direct/t/103569851044282/",
-    // "https://www.instagram.com/direct/t/115515829838980/",
-    // "https://www.instagram.com/direct/t/17842088849096527/",
-    // "https://www.instagram.com/direct/t/119368462786964/",
+    "https://www.instagram.com/direct/t/17844923517215556/",
+    "https://www.instagram.com/direct/t/113317673393519/",
     // "https://www.instagram.com/direct/t/103980751005186/",
     // "https://www.instagram.com/direct/t/111939926858978/",
     // "https://www.instagram.com/direct/t/113536340193789/",

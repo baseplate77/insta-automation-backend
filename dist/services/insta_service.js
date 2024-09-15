@@ -200,6 +200,9 @@ class InstaService {
             let userIdSelector = "div.x9f619.x1n2onr6.x1ja2u2z.x78zum5.xdt5ytf.x193iq5w.xeuugli.x1r8uery.x1iyjqo2.xs83m0k.xsyo7zv.x16hj40l.x10b6aqq.x1yrsyyn > a";
             let messageInputSelector = "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1i64zmx.xw3qccf.x1uhb9sk.x1plvlek.xryxfnj.x1iyjqo2.x2lwn1j.xeuugli.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div > div.xzsf02u.x1a2a7pz.x1n2onr6.x14wi4xw.x1iyjqo2.x1gh3ibb.xisnujt.xeuugli.x1odjw0f";
             let accountCategorySelector = "div > div.x1gryazu.xh8yej3.x10o80wk.x14k21rp.x17snn68.x6osk4m.x1porb0y.x8vgawa > section > main > div > header > section.xc3tme8.x1uhmqq1.x1xdureb.xo55r9g.x1vnunu7.x14tfgiu.xlrpkbc.xpoid6y.x16zxmhm.x6ikm8r.x10wlt62 > div > div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1n2onr6.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div";
+            let chatActiveTimeSelector = "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1gslohp.x1uhb9sk.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > span";
+            let hasSeenMsgSelector = "div > div.x78zum5.x13a6bvl.xvrgn94.x7ggn4r.xhepvqq > span";
+            let hasRepliedSelector = "div > span > img";
             let userDetails = [];
             for (let i = 0; i < links.length; i++) {
                 const link = links[i];
@@ -211,13 +214,15 @@ class InstaService {
                     let cursor = (0, ghost_cursor_1.createCursor)(page);
                     yield page.waitForSelector(userIdSelector, { timeout: 5000 });
                     yield (0, delay_1.default)(1000);
-                    let profileUrl, userId, userName, accountCategory, country, seenStatus, lastMsgDate;
+                    let profileUrl, userId, userName, accountCategory, country, seenStatus, lastMsgDate, hasReplied, hasSeenMsg, chatActiveTime;
+                    // dm will not be send if hasReplied, hasSeenMsg is true or chatActive was active
                     try {
                         yield page.waitForSelector(msgListSelector, { timeout: 5000 });
                     }
                     catch (error) {
-                        console.log("error in sendDmandfetchData", error);
+                        console.log("error in sendDmAndfetchData", error);
                     }
+                    // console.log("message list loaded");
                     try {
                         let userIdElement = yield page.$(userIdSelector);
                         profileUrl =
@@ -237,6 +242,17 @@ class InstaService {
                         let msgListElement = yield page.$(msgListSelector);
                         if (msgListElement !== null && msgListElement !== undefined) {
                             let msgList = (yield msgListElement.$$(":scope > *")).reverse();
+                            let lastMsg = msgList[0];
+                            let hasSeenElement = yield lastMsg.$(hasSeenMsgSelector);
+                            hasSeenMsg =
+                                hasSeenElement !== undefined
+                                    ? yield (hasSeenElement === null || hasSeenElement === void 0 ? void 0 : hasSeenElement.evaluate((p) => p.innerText))
+                                    : "";
+                            let hasRepliedElement = yield lastMsg.$(hasRepliedSelector);
+                            hasReplied =
+                                hasRepliedElement !== undefined
+                                    ? yield (hasRepliedElement === null || hasRepliedElement === void 0 ? void 0 : hasRepliedElement.evaluate((p) => p.innerText))
+                                    : "";
                             for (let msg of msgList) {
                                 let e = yield msg.$(lastMsgDateSelector);
                                 if (e !== undefined && e !== null) {
@@ -245,6 +261,11 @@ class InstaService {
                                 }
                             }
                         }
+                        let chatActiveElement = yield page.$(chatActiveTimeSelector);
+                        chatActiveTime =
+                            chatActiveElement !== undefined
+                                ? yield (chatActiveElement === null || chatActiveElement === void 0 ? void 0 : chatActiveElement.evaluate((p) => p.innerText))
+                                : "";
                         if (profileUrl !== undefined || profileUrl !== "") {
                             yield cursor.move(userIdSelector);
                             let newPage = yield this.browser.newPage();
@@ -270,9 +291,9 @@ class InstaService {
                                 yield newCursor.click(profileUserIdSelector);
                                 try {
                                     let countrySelector = "div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(2) > span:nth-child(2)";
-                                    yield newPage.waitForSelector(countrySelector, {
-                                        timeout: 50000,
-                                    });
+                                    // await newPage.waitForSelector(countrySelector, {
+                                    //   timeout: 2_0000,
+                                    // });
                                     let countryElement = yield newPage.$(countrySelector);
                                     let countryName = countryElement
                                         ? yield countryElement.evaluate((e) => e.innerText)
@@ -292,8 +313,10 @@ class InstaService {
                             userName,
                             accountCategory,
                             country,
-                            seenStatus,
                             lastMsgDate,
+                            chatActiveTime,
+                            hasSeenMsg,
+                            hasReplied,
                         });
                         console.log("details", userDetails);
                     }
@@ -302,16 +325,17 @@ class InstaService {
                         throw "not able to dm this user as it has been block";
                     }
                     // send message
-                    yield page.waitForSelector(messageInputSelector, { timeout: 5000 });
-                    let messageInputElement = yield page.$(messageInputSelector);
-                    if (messageInputElement === null || messageInputElement === undefined)
-                        throw "unable to loccate the message element";
-                    cursor.click(messageInputSelector);
-                    yield messageInputElement.type(`Hi @${userId}`, { delay: 100 });
-                    yield (0, delay_1.default)(500);
-                    yield page.keyboard.press("Tab");
-                    yield page.keyboard.press("Enter");
-                    yield (0, delay_1.default)(2000);
+                    yield this.sendDM(page, "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛", userId, cursor);
+                    // await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
+                    // let messageInputElement = await page.$(messageInputSelector);
+                    // if (messageInputElement === null || messageInputElement === undefined)
+                    //   throw "unable to loccate the message element";
+                    // cursor.click(messageInputSelector);
+                    // await messageInputElement.type(`Hi @${userId}`, { delay: 100 });
+                    // await delay(500);
+                    // await page.keyboard.press("Tab");
+                    // await page.keyboard.press("Enter");
+                    // await delay(2000);
                 }
                 catch (error) {
                     console.log("error :", error);
@@ -321,6 +345,52 @@ class InstaService {
                 }
             }
             return userDetails;
+        });
+    }
+    sendDM(page, msg, userId, cursor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let messageInputSelector = "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1i64zmx.xw3qccf.x1uhb9sk.x1plvlek.xryxfnj.x1iyjqo2.x2lwn1j.xeuugli.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div > div.xzsf02u.x1a2a7pz.x1n2onr6.x14wi4xw.x1iyjqo2.x1gh3ibb.xisnujt.xeuugli.x1odjw0f";
+                // send message
+                yield page.waitForSelector(messageInputSelector, { timeout: 2000 });
+                let messageInputElement = yield page.$(messageInputSelector);
+                if (messageInputElement === null || messageInputElement === undefined)
+                    throw "unable to loccate the message element";
+                cursor.click(messageInputSelector);
+                yield messageInputElement.type(`hello @${userId}`, { delay: 200 });
+                yield (0, delay_1.default)(200);
+                yield page.keyboard.down("Shift");
+                yield page.keyboard.press("Enter");
+                yield (0, delay_1.default)(100); // Add a small delay to ensure the new line is created
+                yield page.keyboard.press("Enter");
+                yield (0, delay_1.default)(100); // Add a small delay to ensure the new line is created
+                yield page.keyboard.up("Shift");
+                yield (0, delay_1.default)(200);
+                // // Ensure the cursor is at the correct position
+                // await messageInputElement.click({ clickCount: 1 });
+                // await delay(200);
+                let words = msg.split(" ");
+                for (let word of words) {
+                    if (word === "\n") {
+                        yield page.keyboard.down("Shift");
+                        yield page.keyboard.press("Enter");
+                        yield (0, delay_1.default)(100);
+                        yield page.keyboard.up("Shift");
+                    }
+                    else {
+                        yield messageInputElement.type(word, { delay: 100 });
+                        yield page.keyboard.press("Space");
+                        yield (0, delay_1.default)(100);
+                    }
+                }
+                yield (0, delay_1.default)(500);
+                yield page.keyboard.press("Tab");
+                // await page.keyboard.press("Enter");
+                yield (0, delay_1.default)(2000);
+            }
+            catch (error) {
+                console.log("error :", error);
+            }
         });
     }
     scanDMs(page) {

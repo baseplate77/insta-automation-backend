@@ -7,6 +7,7 @@ import delay from "../utils/delay";
 import fs from "fs";
 import path from "path";
 import { blockResourceRequest } from "../utils/block_request";
+import { Cursor } from "mongoose";
 
 class InstaService {
   private userId!: string;
@@ -233,6 +234,11 @@ class InstaService {
     let accountCategorySelector =
       "div > div.x1gryazu.xh8yej3.x10o80wk.x14k21rp.x17snn68.x6osk4m.x1porb0y.x8vgawa > section > main > div > header > section.xc3tme8.x1uhmqq1.x1xdureb.xo55r9g.x1vnunu7.x14tfgiu.xlrpkbc.xpoid6y.x16zxmhm.x6ikm8r.x10wlt62 > div > div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1n2onr6.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div";
 
+    let chatActiveTimeSelector =
+      "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1gslohp.x1uhb9sk.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > span";
+    let hasSeenMsgSelector =
+      "div > div.x78zum5.x13a6bvl.xvrgn94.x7ggn4r.xhepvqq > span";
+    let hasRepliedSelector = "div > span > img";
     let userDetails: any[] = [];
 
     for (let i = 0; i < links.length; i++) {
@@ -253,13 +259,20 @@ class InstaService {
           accountCategory,
           country,
           seenStatus,
-          lastMsgDate;
+          lastMsgDate,
+          hasReplied,
+          hasSeenMsg,
+          chatActiveTime;
+
+        // dm will not be send if hasReplied, hasSeenMsg is true or chatActive was active
 
         try {
           await page.waitForSelector(msgListSelector, { timeout: 5_000 });
         } catch (error) {
-          console.log("error in sendDmandfetchData", error);
+          console.log("error in sendDmAndfetchData", error);
         }
+        // console.log("message list loaded");
+
         try {
           let userIdElement = await page.$(userIdSelector);
 
@@ -283,6 +296,20 @@ class InstaService {
           let msgListElement = await page.$(msgListSelector);
           if (msgListElement !== null && msgListElement !== undefined) {
             let msgList = (await msgListElement.$$(":scope > *")).reverse();
+            let lastMsg = msgList[0];
+
+            let hasSeenElement = await lastMsg.$(hasSeenMsgSelector);
+
+            hasSeenMsg =
+              hasSeenElement !== undefined
+                ? await hasSeenElement?.evaluate((p: any) => p.innerText)
+                : "";
+
+            let hasRepliedElement = await lastMsg.$(hasRepliedSelector);
+            hasReplied =
+              hasRepliedElement !== undefined
+                ? await hasRepliedElement?.evaluate((p: any) => p.innerText)
+                : "";
 
             for (let msg of msgList) {
               let e = await msg.$(lastMsgDateSelector);
@@ -292,6 +319,13 @@ class InstaService {
               }
             }
           }
+
+          let chatActiveElement = await page.$(chatActiveTimeSelector);
+
+          chatActiveTime =
+            chatActiveElement !== undefined
+              ? await chatActiveElement?.evaluate((p: any) => p.innerText)
+              : "";
 
           if (profileUrl !== undefined || profileUrl !== "") {
             await cursor.move(userIdSelector);
@@ -330,9 +364,9 @@ class InstaService {
                 let countrySelector =
                   "div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(2) > span:nth-child(2)";
 
-                await newPage.waitForSelector(countrySelector, {
-                  timeout: 5_0000,
-                });
+                // await newPage.waitForSelector(countrySelector, {
+                //   timeout: 2_0000,
+                // });
 
                 let countryElement = await newPage.$(countrySelector);
                 let countryName = countryElement
@@ -357,8 +391,10 @@ class InstaService {
             userName,
             accountCategory,
             country,
-            seenStatus,
             lastMsgDate,
+            chatActiveTime,
+            hasSeenMsg,
+            hasReplied,
           });
 
           console.log("details", userDetails);
@@ -368,20 +404,28 @@ class InstaService {
         }
 
         // send message
-        await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
 
-        let messageInputElement = await page.$(messageInputSelector);
+        await this.sendDM(
+          page,
+          "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛",
+          userId,
+          cursor
+        );
 
-        if (messageInputElement === null || messageInputElement === undefined)
-          throw "unable to loccate the message element";
+        // await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
 
-        cursor.click(messageInputSelector);
+        // let messageInputElement = await page.$(messageInputSelector);
 
-        await messageInputElement.type(`Hi @${userId}`, { delay: 100 });
-        await delay(500);
-        await page.keyboard.press("Tab");
-        await page.keyboard.press("Enter");
-        await delay(2000);
+        // if (messageInputElement === null || messageInputElement === undefined)
+        //   throw "unable to loccate the message element";
+
+        // cursor.click(messageInputSelector);
+
+        // await messageInputElement.type(`Hi @${userId}`, { delay: 100 });
+        // await delay(500);
+        // await page.keyboard.press("Tab");
+        // await page.keyboard.press("Enter");
+        // await delay(2000);
       } catch (error) {
         console.log("error :", error);
       } finally {
@@ -390,6 +434,54 @@ class InstaService {
     }
 
     return userDetails;
+  }
+  async sendDM(page: Page, msg: string, userId: string, cursor: any) {
+    try {
+      let messageInputSelector =
+        "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1i64zmx.xw3qccf.x1uhb9sk.x1plvlek.xryxfnj.x1iyjqo2.x2lwn1j.xeuugli.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div > div.xzsf02u.x1a2a7pz.x1n2onr6.x14wi4xw.x1iyjqo2.x1gh3ibb.xisnujt.xeuugli.x1odjw0f";
+      // send message
+      await page.waitForSelector(messageInputSelector, { timeout: 2_000 });
+
+      let messageInputElement = await page.$(messageInputSelector);
+
+      if (messageInputElement === null || messageInputElement === undefined)
+        throw "unable to loccate the message element";
+
+      cursor.click(messageInputSelector);
+
+      await messageInputElement.type(`hello @${userId}`, { delay: 200 });
+      await delay(200);
+      await page.keyboard.down("Shift");
+      await page.keyboard.press("Enter");
+      await delay(100); // Add a small delay to ensure the new line is created
+      await page.keyboard.press("Enter");
+      await delay(100); // Add a small delay to ensure the new line is created
+      await page.keyboard.up("Shift");
+      await delay(200);
+      // // Ensure the cursor is at the correct position
+      // await messageInputElement.click({ clickCount: 1 });
+      // await delay(200);
+
+      let words = msg.split(" ");
+      for (let word of words) {
+        if (word === "\n") {
+          await page.keyboard.down("Shift");
+          await page.keyboard.press("Enter");
+          await delay(100);
+          await page.keyboard.up("Shift");
+        } else {
+          await messageInputElement.type(word, { delay: 100 });
+          await page.keyboard.press("Space");
+          await delay(100);
+        }
+      }
+      await delay(500);
+      await page.keyboard.press("Tab");
+      // await page.keyboard.press("Enter");
+      await delay(2000);
+    } catch (error) {
+      console.log("error :", error);
+    }
   }
 
   async scanDMs(page?: Page) {
