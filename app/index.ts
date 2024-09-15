@@ -132,7 +132,7 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
   let links = Object.keys(finaldata).map((dmData) => finaldata[dmData]["link"]);
   console.log("data :", links);
 
-  let data = await instaServive.sendDMAndFetchData(links);
+  let data = await instaServive.sendDMAndFetchData(links.reverse());
 
   console.log("data :", data);
 

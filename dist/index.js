@@ -117,7 +117,7 @@ app.get("/scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
     let links = Object.keys(finaldata).map((dmData) => finaldata[dmData]["link"]);
     console.log("data :", links);
-    let data = yield instaServive.sendDMAndFetchData(links);
+    let data = yield instaServive.sendDMAndFetchData(links.reverse());
     console.log("data :", data);
     yield instaServive.dispose();
     const wb = xlsx_1.default.utils.book_new();
