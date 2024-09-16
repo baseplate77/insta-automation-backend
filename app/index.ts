@@ -83,7 +83,7 @@ app.post("/add-account", async (req: Request, res: Response) => {
 
 app.get("/test-login", async (req: Request, res: Response) => {
   res.send("started");
-  let temp = testAccounts.splice(0, 4);
+  let temp = testAccounts.splice(0, 10);
   let promise = temp.map(async (account: any, index) => {
     // const account = testAccounts[index];
     console.log("account :", account, index + 1);
