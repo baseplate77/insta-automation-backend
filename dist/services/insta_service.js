@@ -213,11 +213,11 @@ class InstaService {
                     yield this.turnOffNotificationClick(page);
                     let cursor = (0, ghost_cursor_1.createCursor)(page);
                     yield page.waitForSelector(userIdSelector, { timeout: 5000 });
-                    yield (0, delay_1.default)(1000);
+                    yield (0, delay_1.default)(500);
                     let profileUrl, userId, userName, accountCategory, country, seenStatus, lastMsgDate, hasReplied, hasSeenMsg, chatActiveTime;
                     // dm will not be send if hasReplied, hasSeenMsg is true or chatActive was active
                     try {
-                        yield page.waitForSelector(msgListSelector, { timeout: 5000 });
+                        yield page.waitForSelector(msgListSelector, { timeout: 2000 });
                     }
                     catch (error) {
                         console.log("error in sendDmAndfetchData", error);
@@ -359,35 +359,68 @@ class InstaService {
                 if (messageInputElement === null || messageInputElement === undefined)
                     throw "unable to loccate the message element";
                 cursor.click(messageInputSelector);
-                yield messageInputElement.type(`hello @${userId}`, { delay: 200 });
-                yield (0, delay_1.default)(200);
-                yield page.keyboard.down("Shift");
-                yield page.keyboard.press("Enter");
-                yield (0, delay_1.default)(100); // Add a small delay to ensure the new line is created
-                yield page.keyboard.press("Enter");
-                yield (0, delay_1.default)(100); // Add a small delay to ensure the new line is created
-                yield page.keyboard.up("Shift");
-                yield (0, delay_1.default)(200);
+                // await messageInputElement.type(`hello @${userId}`, { delay: 200 });
+                // await delay(200);
+                // await page.keyboard.down("Shift");
+                // await page.keyboard.press("Enter");
+                // await delay(100); // Add a small delay to ensure the new line is created
+                // await page.keyboard.press("Enter");
+                // await delay(100); // Add a small delay to ensure the new line is created
+                // await page.keyboard.up("Shift");
+                // await delay(200);
                 // // Ensure the cursor is at the correct position
                 // await messageInputElement.click({ clickCount: 1 });
                 // await delay(200);
+                // tpying
+                // let words = msg.split(" ");
+                // for (let word of words) {
+                //   if (word === "\n") {
+                //     await page.keyboard.down("Shift");
+                //     await page.keyboard.press("Enter");
+                //     await delay(100);
+                //     await page.keyboard.up("Shift");
+                //   } else {
+                //     await messageInputElement.type(word, { delay: 100 });
+                //     await page.keyboard.press("Space");
+                //     await delay(100);
+                //   }
+                // }
+                // typing without delay
+                yield (0, delay_1.default)(1500);
+                yield messageInputElement.type(`hello `);
+                yield (0, delay_1.default)(100);
+                yield messageInputElement.type(`@${userId}`);
+                yield (0, delay_1.default)(100);
+                yield page.keyboard.down("Shift");
+                yield (0, delay_1.default)(200);
+                yield page.keyboard.press("Enter");
+                yield (0, delay_1.default)(200); // Add a small delay to ensure the new line is created
+                yield page.keyboard.press("Enter");
+                yield (0, delay_1.default)(200); // Add a small delay to ensure the new line is created
+                yield page.keyboard.up("Shift");
+                yield (0, delay_1.default)(200);
                 let words = msg.split(" ");
                 for (let word of words) {
                     if (word === "\n") {
                         yield page.keyboard.down("Shift");
+                        yield (0, delay_1.default)(200);
                         yield page.keyboard.press("Enter");
-                        yield (0, delay_1.default)(100);
+                        yield (0, delay_1.default)(200);
                         yield page.keyboard.up("Shift");
                     }
                     else {
-                        yield messageInputElement.type(word, { delay: 100 });
-                        yield page.keyboard.press("Space");
-                        yield (0, delay_1.default)(100);
+                        yield messageInputElement.type(word);
+                        yield messageInputElement.press("Space");
                     }
                 }
-                yield (0, delay_1.default)(500);
+                // let clipboardy = await import_("clipboardy");
+                // // paste the message
+                // clipboardy.writeSync(msg);
+                // Paste the text using Ctrl+V
+                yield (0, delay_1.default)(200);
                 yield page.keyboard.press("Tab");
-                yield page.keyboard.press("Enter");
+                yield (0, delay_1.default)(100);
+                // await page.keyboard.press("Enter");
                 yield (0, delay_1.default)(2000);
             }
             catch (error) {

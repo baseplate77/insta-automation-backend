@@ -3,7 +3,7 @@ import { globalBrowser } from "../utils/browerSetup";
 import { installMouseHelper } from "../utils/mouse-helper";
 import { createCursor, GhostCursor } from "ghost-cursor";
 import delay from "../utils/delay";
-
+import import_ from "@brillout/import";
 import fs from "fs";
 import path from "path";
 import { blockResourceRequest } from "../utils/block_request";
@@ -252,7 +252,7 @@ class InstaService {
         await this.turnOffNotificationClick(page);
         let cursor = createCursor(page);
         await page.waitForSelector(userIdSelector, { timeout: 5_000 });
-        await delay(1000);
+        await delay(500);
         let profileUrl,
           userId,
           userName,
@@ -267,7 +267,7 @@ class InstaService {
         // dm will not be send if hasReplied, hasSeenMsg is true or chatActive was active
 
         try {
-          await page.waitForSelector(msgListSelector, { timeout: 5_000 });
+          await page.waitForSelector(msgListSelector, { timeout: 2_000 });
         } catch (error) {
           console.log("error in sendDmAndfetchData", error);
         }
@@ -449,35 +449,71 @@ class InstaService {
 
       cursor.click(messageInputSelector);
 
-      await messageInputElement.type(`hello @${userId}`, { delay: 200 });
-      await delay(200);
-      await page.keyboard.down("Shift");
-      await page.keyboard.press("Enter");
-      await delay(100); // Add a small delay to ensure the new line is created
-      await page.keyboard.press("Enter");
-      await delay(100); // Add a small delay to ensure the new line is created
-      await page.keyboard.up("Shift");
-      await delay(200);
+      // await messageInputElement.type(`hello @${userId}`, { delay: 200 });
+      // await delay(200);
+      // await page.keyboard.down("Shift");
+      // await page.keyboard.press("Enter");
+      // await delay(100); // Add a small delay to ensure the new line is created
+      // await page.keyboard.press("Enter");
+      // await delay(100); // Add a small delay to ensure the new line is created
+      // await page.keyboard.up("Shift");
+      // await delay(200);
       // // Ensure the cursor is at the correct position
       // await messageInputElement.click({ clickCount: 1 });
       // await delay(200);
 
+      // tpying
+      // let words = msg.split(" ");
+      // for (let word of words) {
+      //   if (word === "\n") {
+      //     await page.keyboard.down("Shift");
+      //     await page.keyboard.press("Enter");
+      //     await delay(100);
+      //     await page.keyboard.up("Shift");
+      //   } else {
+      //     await messageInputElement.type(word, { delay: 100 });
+      //     await page.keyboard.press("Space");
+      //     await delay(100);
+      //   }
+      // }
+
+      // typing without delay
+      await delay(1500);
+      await messageInputElement.type(`hello `);
+      await delay(100);
+      await messageInputElement.type(`@${userId}`);
+      await delay(100);
+      await page.keyboard.down("Shift");
+      await delay(200);
+      await page.keyboard.press("Enter");
+      await delay(200); // Add a small delay to ensure the new line is created
+      await page.keyboard.press("Enter");
+      await delay(200); // Add a small delay to ensure the new line is created
+      await page.keyboard.up("Shift");
+      await delay(200);
       let words = msg.split(" ");
       for (let word of words) {
         if (word === "\n") {
           await page.keyboard.down("Shift");
+          await delay(200);
           await page.keyboard.press("Enter");
-          await delay(100);
+          await delay(200);
           await page.keyboard.up("Shift");
         } else {
-          await messageInputElement.type(word, { delay: 100 });
-          await page.keyboard.press("Space");
-          await delay(100);
+          await messageInputElement.type(word);
+          await messageInputElement.press("Space");
         }
       }
-      await delay(500);
+
+      // let clipboardy = await import_("clipboardy");
+      // // paste the message
+      // clipboardy.writeSync(msg);
+      // Paste the text using Ctrl+V
+
+      await delay(200);
       await page.keyboard.press("Tab");
-      await page.keyboard.press("Enter");
+      await delay(100);
+      // await page.keyboard.press("Enter");
       await delay(2000);
     } catch (error) {
       console.log("error :", error);

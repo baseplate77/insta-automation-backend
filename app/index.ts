@@ -128,12 +128,12 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
   // for (let index = 0; index < dmAccounts.length; index++) {
   var startTime = performance.now();
 
-  const dmAccount = dmAccounts[index];
+  const dmAccount = fetchAccounts[index];
   console.log("account :", dmAccount);
   let instaServive = new InstaService();
 
   await instaServive.init(dmAccount.username, dmAccount.password);
-  let page = await instaServive.logIn({ cookieLogin: true, index: index });
+  let page = await instaServive.logIn({ cookieLogin: true, index: index + 10 });
   // note after login need to handle the save info click to not now
   console.log("login completeddd");
   // await delay(10000000);
@@ -195,22 +195,26 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
 app.get("/send-msg", async (req: Request, res: Response) => {
   let { accNumber } = req.query;
   let index = parseInt((accNumber as string) ?? "0");
-
   let links = [
-    "https://www.instagram.com/direct/t/17844923517215556/",
+    "https://www.instagram.com/direct/t/111382850255581/",
+    "https://www.instagram.com/direct/t/108552750540243/",
+    "https://www.instagram.com/direct/t/112404146825528/",
+    "https://www.instagram.com/direct/t/106598704071063/",
     "https://www.instagram.com/direct/t/113317673393519/",
-    // "https://www.instagram.com/direct/t/103980751005186/",
-    // "https://www.instagram.com/direct/t/111939926858978/",
-    // "https://www.instagram.com/direct/t/113536340193789/",
-    // "https://www.instagram.com/direct/t/111822650205394/",
-    // "https://www.instagram.com/direct/t/122784635777726/",
-    // "https://www.instagram.com/direct/t/117914032930523/",
-    // "https://www.instagram.com/direct/t/112948393434025/",
-    // "https://www.instagram.com/direct/t/115295616534246/",
-    // "https://www.instagram.com/direct/t/17845396595519528/",
+    "https://www.instagram.com/direct/t/17844923517215556/",
+    "https://www.instagram.com/direct/t/106758504055478/",
+    "https://www.instagram.com/direct/t/115651616491680/",
+    "https://www.instagram.com/direct/t/106188530779387/",
+    "https://www.instagram.com/direct/t/104243080974451/",
+    "https://www.instagram.com/direct/t/104112324321190/",
+    "https://www.instagram.com/direct/t/118002332921612/",
+    "https://www.instagram.com/direct/t/17846607429176689/",
+    "https://www.instagram.com/direct/t/114496199940296/",
   ];
   try {
     let dmAccount = fetchAccounts[index];
+
+    console.log("account :", dmAccount);
 
     let instaServive = new InstaService();
 
