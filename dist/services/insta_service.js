@@ -701,7 +701,7 @@ class InstaService {
                     cursor.click('button[type="submit"]');
                     // await page.click('button[type="submit"]');
                     yield page.waitForNavigation({ timeout: 0 });
-                    console.log("Login successful!");
+                    console.log("Login successful!", this.userId, index);
                     // await delay(1000);
                     console.log("saving the cookies");
                     // Save cookies to a file or database
