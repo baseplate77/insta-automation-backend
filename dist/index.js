@@ -73,7 +73,7 @@ app.get("/test-login", (req, res) => __awaiter(void 0, void 0, void 0, function*
     console.log(constants_1.testAccounts);
     res.send("started");
     let temp = constants_1.testAccounts.splice(0, 2);
-    let promise = temp.map((account, index) => __awaiter(void 0, void 0, void 0, function* () {
+    let promise = constants_1.testAccounts.map((account, index) => __awaiter(void 0, void 0, void 0, function* () {
         // const account = testAccounts[index];
         console.log("account :", account, index + 1);
         try {
@@ -87,7 +87,7 @@ app.get("/test-login", (req, res) => __awaiter(void 0, void 0, void 0, function*
             console.log("failed to login :", account);
         }
     }));
-    for (let index = 0; index < 5; index++) { }
+    yield Promise.all([...promise]);
 }));
 // app.get("/login-all-account",async (req:Request,res:Response) => {
 // })
