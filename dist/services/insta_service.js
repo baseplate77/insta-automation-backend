@@ -510,7 +510,9 @@ class InstaService {
                 // console.log("url :", url);
                 let cursor = (0, ghost_cursor_1.createCursor)(page);
                 if (url.includes("challenge/")) {
-                    yield page.waitForSelector("form > div > div:nth-child(2)");
+                    yield page.waitForSelector("form > div > div:nth-child(2)", {
+                        timeout: 10000,
+                    });
                     let thatWasMeBtn = yield page.$("form > div > div:nth-child(2)");
                     if (thatWasMeBtn) {
                         yield cursor.click("form > div > div:nth-child(2)");
@@ -657,8 +659,8 @@ class InstaService {
             }
             catch (error) {
                 console.log("error in scan Dms :", error);
-                throw error;
             }
+            return finaldata;
         });
     }
     logIn(_a) {

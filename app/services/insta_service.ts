@@ -621,7 +621,10 @@ class InstaService {
       let cursor = createCursor(page);
 
       if (url.includes("challenge/")) {
-        await page.waitForSelector("form > div > div:nth-child(2)");
+        await page.waitForSelector("form > div > div:nth-child(2)", {
+          timeout: 10_000,
+        });
+
         let thatWasMeBtn = await page.$("form > div > div:nth-child(2)");
         if (thatWasMeBtn) {
           await cursor.click("form > div > div:nth-child(2)");
@@ -789,8 +792,8 @@ class InstaService {
       return finaldata;
     } catch (error) {
       console.log("error in scan Dms :", error);
-      throw error;
     }
+    return finaldata;
   }
 
   async logIn({
