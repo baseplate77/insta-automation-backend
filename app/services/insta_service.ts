@@ -829,7 +829,9 @@ class InstaService {
         });
       } else {
         console.log(
-          "No cookies file found. Please login first to save cookies."
+          "No cookies file found. Please login first to save cookies.",
+          this.userId,
+          index
         );
         await page.goto("https://www.instagram.com/", {
           waitUntil: ["load", "networkidle0"],
