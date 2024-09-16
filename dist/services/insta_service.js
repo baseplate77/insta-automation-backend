@@ -420,7 +420,7 @@ class InstaService {
                 yield (0, delay_1.default)(200);
                 yield page.keyboard.press("Tab");
                 yield (0, delay_1.default)(100);
-                // await page.keyboard.press("Enter");
+                yield page.keyboard.press("Enter");
                 yield (0, delay_1.default)(2000);
             }
             catch (error) {

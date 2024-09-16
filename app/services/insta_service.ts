@@ -513,7 +513,7 @@ class InstaService {
       await delay(200);
       await page.keyboard.press("Tab");
       await delay(100);
-      // await page.keyboard.press("Enter");
+      await page.keyboard.press("Enter");
       await delay(2000);
     } catch (error) {
       console.log("error :", error);
