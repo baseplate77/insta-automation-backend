@@ -23,6 +23,7 @@ const constants_1 = require("./utils/constants");
 const firebase_1 = require("./utils/firebase");
 const resend_1 = require("./utils/resend");
 const account_schema_1 = require("./db/schema/account.schema");
+const delay_1 = __importDefault(require("./utils/delay"));
 const encrypt_1 = require("./utils/encrypt");
 const body_parser_1 = __importDefault(require("body-parser"));
 const chatAccount_schema_1 = require("./db/schema/chatAccount.schema");
@@ -68,6 +69,28 @@ app.post("/add-account", (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
     res.send("ok");
 }));
+app.get("/test-login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(constants_1.testAccounts);
+    res.send("started");
+    let temp = constants_1.testAccounts.splice(0, 2);
+    let promise = temp.map((account, index) => __awaiter(void 0, void 0, void 0, function* () {
+        // const account = testAccounts[index];
+        console.log("account :", account, index + 1);
+        try {
+            let instaService = new insta_service_1.default();
+            yield instaService.init(account.username, account.password);
+            yield (0, delay_1.default)(1000 * index);
+            yield instaService.logIn({ cookieLogin: true, index: index + 10 });
+            yield instaService.dispose();
+        }
+        catch (error) {
+            console.log("failed to login :", account);
+        }
+    }));
+    for (let index = 0; index < 5; index++) { }
+}));
+// app.get("/login-all-account",async (req:Request,res:Response) => {
+// })
 app.get("/scan-dm-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId } = req.query;
     try {

@@ -404,13 +404,13 @@ class InstaService {
         }
 
         // send message
-        // if (sendMessage)
-        //   await this.sendDM(
-        //     page,
-        //     "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛",
-        //     userId,
-        //     cursor
-        //   );
+        if (sendMessage)
+          await this.sendDM(
+            page,
+            "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛",
+            userId,
+            cursor
+          );
 
         // await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
 

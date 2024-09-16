@@ -6,7 +6,12 @@ import fs, { link } from "fs";
 import path from "path";
 import xlsx from "xlsx";
 import InstaService from "./services/insta_service";
-import { dmAccounts, dmFetchData, fetchAccounts } from "./utils/constants";
+import {
+  dmAccounts,
+  dmFetchData,
+  fetchAccounts,
+  testAccounts,
+} from "./utils/constants";
 import { amdin } from "./utils/firebase";
 import { sendMail } from "./utils/resend";
 import DBService from "./db/db_service";
@@ -75,6 +80,34 @@ app.post("/add-account", async (req: Request, res: Response) => {
 
   res.send("ok");
 });
+
+app.get("/test-login", async (req: Request, res: Response) => {
+  console.log(testAccounts);
+  res.send("started");
+  let temp = testAccounts.splice(0, 2);
+  let promise = temp.map(async (account: any, index) => {
+    // const account = testAccounts[index];
+    console.log("account :", account, index + 1);
+
+    try {
+      let instaService = new InstaService();
+      await instaService.init(account.username, account.password);
+
+      await delay(1000 * index);
+
+      await instaService.logIn({ cookieLogin: true, index: index + 10 });
+
+      await instaService.dispose();
+    } catch (error) {
+      console.log("failed to login :", account);
+    }
+  });
+  for (let index = 0; index < 5; index++) {}
+});
+
+// app.get("/login-all-account",async (req:Request,res:Response) => {
+
+// })
 
 app.get("/scan-dm-account", async (req: Request, res: Response) => {
   const { userId } = req.query;
