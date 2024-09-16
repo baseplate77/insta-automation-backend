@@ -148,6 +148,7 @@ app.get("/test-scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, functio
             }
         }));
         yield Promise.all([...promise]);
+        console.log("completed");
     }
     catch (error) {
         console.log("error", error);

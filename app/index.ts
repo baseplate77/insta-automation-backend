@@ -184,6 +184,8 @@ app.get("/test-scan-dm", async (req: Request, res: Response) => {
     });
 
     await Promise.all([...promise]);
+
+    console.log("completed");
   } catch (error) {
     console.log("error", error);
   }
