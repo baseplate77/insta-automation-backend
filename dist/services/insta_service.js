@@ -565,7 +565,7 @@ class InstaService {
                     // let dmChildNodes = await dmListDiv?.$$(":scope > *");
                     let keys = Object.keys(finaldata);
                     console.log("scan links count :", keys.length);
-                    if (previoursObjectLeng === keys.length && loadingDiv === null) {
+                    if (previoursObjectLeng === keys.length) {
                         if (repeatedSameValue === 5)
                             break;
                         repeatedSameValue++;

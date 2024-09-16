@@ -105,6 +105,90 @@ app.get("/test-login", async (req: Request, res: Response) => {
   await Promise.all([...promise]);
 });
 
+app.get("/test-scan-dm", async (req: Request, res: Response) => {
+  res.send("started");
+
+  try {
+    let promise = testAccounts.map(async (dmAccount: any, index) => {
+      try {
+        var startTime = performance.now();
+
+        console.log("account :", dmAccount);
+        let instaServive = new InstaService();
+
+        await instaServive.init(dmAccount.username, dmAccount.password);
+        let page = await instaServive.logIn({
+          cookieLogin: true,
+          index: index + 10,
+        });
+        // note after login need to handle the save info click to not now
+        console.log("login completeddd");
+        // await delay(10000000);
+        let finaldata = await instaServive.scanDMs(page);
+        let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
+
+        let links = Object.keys(finaldata).map(
+          (dmData) => finaldata[dmData]["link"]
+        );
+        console.log("links :", links);
+
+        let data = await instaServive.sendDMAndFetchData(links.reverse());
+
+        console.log("data :", data);
+
+        await instaServive.dispose();
+
+        const wb = xlsx.utils.book_new();
+        const ws = xlsx.utils.json_to_sheet(details);
+
+        // Append the worksheet to the workbook
+        xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
+        // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
+
+        // Write the workbook to a file
+        let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
+        xlsx.writeFile(wb, filePath);
+        // console.log("links :", links.length);
+
+        xlsx.writeFile(wb, filePath);
+        const bucket = amdin.storage().bucket();
+        await bucket.upload(filePath, {
+          destination: `insta-data/${dmAccount.username}.xlsx`,
+          metadata: {
+            contentType:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          },
+        });
+        const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
+        const [url] = await file.getSignedUrl({
+          action: "read",
+          expires: "03-01-2500", // Set an appropriate expiration date
+        });
+
+        var endTime = performance.now();
+        await sendMail(
+          process.env.EMAIL!,
+          `Insta-report-${dmAccount.username}`,
+          `
+            <div>
+              DM scan for account ${dmAccount.username}
+      
+              time for execution - ${endTime - startTime} milliseconds
+              <a href="${url}">${dmAccount.username}.xlsx</a>
+            </div>
+            `
+        );
+      } catch (error) {
+        console.log("erorr  in test scana and send dm :", error);
+      }
+    });
+
+    await Promise.all([...promise]);
+  } catch (error) {
+    console.log("error", error);
+  }
+});
+
 // app.get("/login-all-account",async (req:Request,res:Response) => {
 
 // })
