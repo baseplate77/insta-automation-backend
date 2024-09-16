@@ -71,7 +71,7 @@ app.post("/add-account", (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 app.get("/test-login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send("started");
-    let temp = constants_1.testAccounts.splice(0, 10);
+    let temp = constants_1.testAccounts.splice(0, 4);
     let promise = temp.map((account, index) => __awaiter(void 0, void 0, void 0, function* () {
         // const account = testAccounts[index];
         console.log("account :", account, index + 1);
