@@ -326,8 +326,13 @@ class InstaService {
                         throw "not able to dm this user as it has been block";
                     }
                     // send message
-                    if (sendMessage)
-                        yield this.sendDM(page, "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛", userId, cursor);
+                    // if (sendMessage)
+                    //   await this.sendDM(
+                    //     page,
+                    //     "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛",
+                    //     userId,
+                    //     cursor
+                    //   );
                     // await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
                     // let messageInputElement = await page.$(messageInputSelector);
                     // if (messageInputElement === null || messageInputElement === undefined)
