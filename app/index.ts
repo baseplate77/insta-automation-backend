@@ -1,5 +1,7 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
+dotenv.config();
+
 import fs, { link } from "fs";
 import path from "path";
 import xlsx from "xlsx";
@@ -11,29 +13,35 @@ import DBService from "./db/db_service";
 import { accountModel } from "./db/schema/account.schema";
 import delay from "./utils/delay";
 import { decrypt, encrypt } from "./utils/encrypt";
-dotenv.config();
+import mongoose from "mongoose";
+import dbService from "./db/db_service";
+import bodyParser from "body-parser";
+import { chatAccountModel } from "./db/schema/chatAccount.schema";
+
+// dbService.connect();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
-const dbTest = async () => {
-  const dbService = new DBService();
-  dbService.connect();
+app.use(bodyParser.json());
 
-  const cookies = JSON.parse(
-    fs.readFileSync(path.join(__dirname, `cookies-${0}.json`), "utf-8")
-  );
+// const dbTest = async () => {
+//   // const cookies = JSON.parse(
+//   //   fs.readFileSync(path.join(__dirname, `cookies-${0}.json`), "utf-8")
+//   // );
 
-  // console.log("cookie :", cookies);
+//   // console.log("cookie :", cookies);
+//   accountModel.watch().on("change", (data) => console.log("data ;", data));
+//   let account = await accountModel.create({
+//     usename: "nj",
+//   });
 
-  let account = await accountModel.create({
-    usename: "nj",
-  });
-  let a = await account.save();
-  console.log("a ;", a);
-};
+//   let a = await account.save();
+//   console.log("a ;", a);
+// };
 
 // dbTest();
+
 app.get("/", async (req: Request, res: Response) => {
   let testKey = "hello you";
 
@@ -47,82 +55,85 @@ app.get("/", async (req: Request, res: Response) => {
   res.send("ok");
 });
 
+app.post("/add-account", async (req: Request, res: Response) => {
+  const { userId, password } = req.body;
+
+  try {
+    let encrpytPassword = encrypt(password);
+
+    let account = await accountModel.create({
+      userId,
+      password: encrpytPassword,
+      isCookieValid: false,
+      cookie: {},
+    });
+
+    await account.save();
+  } catch (error) {
+    console.log("unable to add account to db : ", error);
+  }
+
+  res.send("ok");
+});
+
+app.get("/scan-dm-account", async (req: Request, res: Response) => {
+  const { userId } = req.query;
+
+  try {
+    let account = await accountModel.findOne({ userId: userId });
+
+    if (account === null) throw "no account with userid exits " + userId;
+
+    let encrpytPassword = account.password;
+
+    let password = decrypt(encrpytPassword ?? "");
+
+    console.log("userId :", userId, password);
+    let instaServer = new InstaService();
+
+    await instaServer.init(account.userId!, password);
+    let page = await instaServer.dblogIn({
+      cookieLogin: true,
+      cookie: account.cookie,
+      setCookie: async (cookie: any) => {
+        account.cookie = cookie;
+        account.isCookieValid = true;
+        await account.save();
+      },
+    });
+
+    let data = await instaServer.scanDMs(page);
+
+    let dmData = Object.keys(data).map((d) => ({
+      ...data[d],
+      accountId: account._id,
+    }));
+
+    await chatAccountModel.insertMany(dmData);
+  } catch (error) {
+    console.log("error :", error);
+    res.status(500).send(error);
+  }
+
+  res.send("ok");
+});
+
 app.get("/scan-dm", async (req: Request, res: Response) => {
   const { accNumber } = req.query;
   let index = parseInt(accNumber as string);
   res.send("started");
-
-  // let promise = dmAccounts.map(async (d: any, index: number) => {
-  //   var startTime = performance.now();
-  //   const dmAccount = dmAccounts[index];
-  //   await delay(index * 1000);
-  //   console.log("account :", dmAccount);
-  //   let instaServive = new InstaService();
-
-  //   await instaServive.init(dmAccount.username, dmAccount.password);
-  //   let page = await instaServive.logIn({ cookieLogin: true, index });
-  //   // note after login need to handle the save info click to not now
-  //   console.log("login completeddd");
-  //   let finaldata = await instaServive.scanDMs(page);
-  //   let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
-  //   await instaServive.dispose();
-  //   console.log("final data :", finaldata);
-
-  //   const wb = xlsx.utils.book_new();
-  //   const ws = xlsx.utils.json_to_sheet(details);
-
-  //   // Append the worksheet to the workbook
-  //   xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
-  //   // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
-
-  //   // Write the workbook to a file
-  //   let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
-  //   xlsx.writeFile(wb, filePath);
-  //   // console.log("links :", links.length);
-
-  //   xlsx.writeFile(wb, filePath);
-  //   const bucket = amdin.storage().bucket();
-  //   await bucket.upload(filePath, {
-  //     destination: `insta-data/${dmAccount.username}.xlsx`,
-  //     metadata: {
-  //       contentType:
-  //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  //     },
-  //   });
-  //   const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
-  //   const [url] = await file.getSignedUrl({
-  //     action: "read",
-  //     expires: "03-01-2500", // Set an appropriate expiration date
-  //   });
-
-  //   var endTime = performance.now();
-  //   await sendMail(
-  //     process.env.EMAIL!,
-  //     `Insta-report-${dmAccount.username}`,
-  //     `
-  //     <div>
-  //       DM scan for account ${dmAccount.username}
-
-  //       time for execution - ${endTime - startTime} milliseconds
-  //       <a href="${url}">${dmAccount.username}.xlsx</a>
-  //     </div>
-  //     `
-  //   );
-  // });
-
-  // await Promise.all(promise);
 
   // // get dm links
 
   // for (let index = 0; index < dmAccounts.length; index++) {
   var startTime = performance.now();
 
-  const dmAccount = dmAccounts[index];
+  const dmAccount = fetchAccounts[index];
   console.log("account :", dmAccount);
   let instaServive = new InstaService();
 
   await instaServive.init(dmAccount.username, dmAccount.password);
-  let page = await instaServive.logIn({ cookieLogin: true, index: index });
+  let page = await instaServive.logIn({ cookieLogin: true, index: index + 10 });
   // note after login need to handle the save info click to not now
   console.log("login completeddd");
   // await delay(10000000);
@@ -130,7 +141,7 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
   let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
 
   let links = Object.keys(finaldata).map((dmData) => finaldata[dmData]["link"]);
-  console.log("data :", links);
+  console.log("links :", links);
 
   let data = await instaServive.sendDMAndFetchData(links.reverse());
 
@@ -139,7 +150,7 @@ app.get("/scan-dm", async (req: Request, res: Response) => {
   await instaServive.dispose();
 
   const wb = xlsx.utils.book_new();
-  const ws = xlsx.utils.json_to_sheet(data);
+  const ws = xlsx.utils.json_to_sheet(details);
 
   // Append the worksheet to the workbook
   xlsx.utils.book_append_sheet(wb, ws, "UserIDs");

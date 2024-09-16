@@ -217,7 +217,7 @@ class InstaService {
     return profileData;
   }
 
-  async sendDMAndFetchData(links: string[]) {
+  async sendDMAndFetchData(links: string[], sendMessage = true) {
     // send DMs
 
     let seenStatusSelector =
@@ -383,8 +383,7 @@ class InstaService {
 
             await newPage.close();
           }
-
-          userDetails.push({
+          let d = {
             userIdUrl: profileUrl,
             userId,
             dmLink: link,
@@ -395,22 +394,23 @@ class InstaService {
             chatActiveTime,
             hasSeenMsg,
             hasReplied,
-          });
+          };
+          userDetails.push(d);
 
-          console.log("details", userDetails);
+          console.log("details", d, userDetails.length);
         } catch (error) {
           console.log("urserid is not finc for this :", link);
           throw "not able to dm this user as it has been block";
         }
 
         // send message
-
-        await this.sendDM(
-          page,
-          "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛",
-          userId,
-          cursor
-        );
+        if (sendMessage)
+          await this.sendDM(
+            page,
+            "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛",
+            userId,
+            cursor
+          );
 
         // await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
 
@@ -477,7 +477,7 @@ class InstaService {
       }
       await delay(500);
       await page.keyboard.press("Tab");
-      // await page.keyboard.press("Enter");
+      await page.keyboard.press("Enter");
       await delay(2000);
     } catch (error) {
       console.log("error :", error);
@@ -819,12 +819,105 @@ class InstaService {
 
         // Save cookies to a file or database
         const cookies = await page.cookies();
+        // if (setCookie) {
+        //   setCookie(cookies);
+        // }
         const cookieFilePath = path.join(
           __dirname,
           `cookies-${index ?? 0}.json`
         );
         try {
           fs.writeFileSync(cookieFilePath, JSON.stringify(cookies));
+          console.log("Cookies saved!");
+        } catch (error) {
+          console.error("Error saving cookies:", error);
+        }
+        await this.saveInfoNotNow(page, cursor);
+        await page.waitForSelector("section > main", { timeout: 0 });
+        await delay(1000);
+      }
+
+      return page;
+    } catch (error) {
+      console.log("error in login the user", error);
+      throw error;
+    }
+  }
+
+  async dblogIn({
+    cookieLogin = true,
+    cookie,
+    setCookie,
+  }: {
+    cookieLogin: boolean;
+    cookie?: any;
+    setCookie?: any;
+  }): Promise<Page | undefined> {
+    if (this.userId === "" && this.userId === undefined)
+      throw "userid is not define";
+    if (this.password === "" && this.password === undefined)
+      throw "password is not define";
+    try {
+      let page = await this.browser!.newPage();
+      await installMouseHelper(page);
+
+      if (
+        cookieLogin &&
+        cookie
+        // fs.existsSync(path.join(__dirname, `cookies-${index}.json`))
+      ) {
+        // const cookies = JSON.parse(
+        //   fs.readFileSync(
+        //     path.join(__dirname, `cookies-${index}.json`),
+        //     "utf-8"
+        //   )
+        // );
+        await page.setCookie(...cookie);
+
+        // Refresh the page or navigate to ensure cookies are applied
+        await page.goto("https://www.instagram.com/", {
+          waitUntil: "networkidle2",
+        });
+      } else {
+        console.log(
+          "No cookies file found. Please login first to save cookies."
+        );
+        await page.goto("https://www.instagram.com/", {
+          waitUntil: ["load", "networkidle0"],
+          timeout: 900000,
+        });
+        let cursor = createCursor(page);
+
+        await cursor.click('input[name="username"]');
+
+        // login using password
+        await page.type('input[name="username"]', this.userId, {
+          delay: 100,
+        });
+        await delay(1000);
+        await page.type('input[name="password"]', this.password, {
+          delay: 100,
+        });
+        // await delay(500);
+        cursor.click('button[type="submit"]');
+        // await page.click('button[type="submit"]');
+        await page.waitForNavigation({ timeout: 0 });
+
+        console.log("Login successful!");
+        // await delay(1000);
+        console.log("saving the cookies");
+
+        // Save cookies to a file or database
+        const cookies = await page.cookies();
+        if (setCookie) {
+          setCookie(cookies);
+        }
+        // const cookieFilePath = path.join(
+        //   __dirname,
+        //   `cookies-${index ?? 0}.json`
+        // );
+        try {
+          // fs.writeFileSync(cookieFilePath, JSON.stringify(cookies));
           console.log("Cookies saved!");
         } catch (error) {
           console.error("Error saving cookies:", error);

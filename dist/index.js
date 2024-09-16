@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const xlsx_1 = __importDefault(require("xlsx"));
@@ -21,23 +22,26 @@ const insta_service_1 = __importDefault(require("./services/insta_service"));
 const constants_1 = require("./utils/constants");
 const firebase_1 = require("./utils/firebase");
 const resend_1 = require("./utils/resend");
-const db_service_1 = __importDefault(require("./db/db_service"));
 const account_schema_1 = require("./db/schema/account.schema");
 const encrypt_1 = require("./utils/encrypt");
-dotenv_1.default.config();
+const body_parser_1 = __importDefault(require("body-parser"));
+const chatAccount_schema_1 = require("./db/schema/chatAccount.schema");
+// dbService.connect();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
-const dbTest = () => __awaiter(void 0, void 0, void 0, function* () {
-    const dbService = new db_service_1.default();
-    dbService.connect();
-    const cookies = JSON.parse(fs_1.default.readFileSync(path_1.default.join(__dirname, `cookies-${0}.json`), "utf-8"));
-    // console.log("cookie :", cookies);
-    let account = yield account_schema_1.accountModel.create({
-        usename: "nj",
-    });
-    let a = yield account.save();
-    console.log("a ;", a);
-});
+app.use(body_parser_1.default.json());
+// const dbTest = async () => {
+//   // const cookies = JSON.parse(
+//   //   fs.readFileSync(path.join(__dirname, `cookies-${0}.json`), "utf-8")
+//   // );
+//   // console.log("cookie :", cookies);
+//   accountModel.watch().on("change", (data) => console.log("data ;", data));
+//   let account = await accountModel.create({
+//     usename: "nj",
+//   });
+//   let a = await account.save();
+//   console.log("a ;", a);
+// };
 // dbTest();
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let testKey = "hello you";
@@ -47,81 +51,77 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("decrpyt :", decrpt);
     res.send("ok");
 }));
+app.post("/add-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId, password } = req.body;
+    try {
+        let encrpytPassword = (0, encrypt_1.encrypt)(password);
+        let account = yield account_schema_1.accountModel.create({
+            userId,
+            password: encrpytPassword,
+            isCookieValid: false,
+            cookie: {},
+        });
+        yield account.save();
+    }
+    catch (error) {
+        console.log("unable to add account to db : ", error);
+    }
+    res.send("ok");
+}));
+app.get("/scan-dm-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.query;
+    try {
+        let account = yield account_schema_1.accountModel.findOne({ userId: userId });
+        if (account === null)
+            throw "no account with userid exits " + userId;
+        let encrpytPassword = account.password;
+        let password = (0, encrypt_1.decrypt)(encrpytPassword !== null && encrpytPassword !== void 0 ? encrpytPassword : "");
+        console.log("userId :", userId, password);
+        let instaServer = new insta_service_1.default();
+        yield instaServer.init(account.userId, password);
+        let page = yield instaServer.dblogIn({
+            cookieLogin: true,
+            cookie: account.cookie,
+            setCookie: (cookie) => __awaiter(void 0, void 0, void 0, function* () {
+                account.cookie = cookie;
+                account.isCookieValid = true;
+                yield account.save();
+            }),
+        });
+        let data = yield instaServer.scanDMs(page);
+        let dmData = Object.keys(data).map((d) => (Object.assign(Object.assign({}, data[d]), { accountId: account._id })));
+        yield chatAccount_schema_1.chatAccountModel.insertMany(dmData);
+    }
+    catch (error) {
+        console.log("error :", error);
+        res.status(500).send(error);
+    }
+    res.send("ok");
+}));
 app.get("/scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { accNumber } = req.query;
     let index = parseInt(accNumber);
     res.send("started");
-    // let promise = dmAccounts.map(async (d: any, index: number) => {
-    //   var startTime = performance.now();
-    //   const dmAccount = dmAccounts[index];
-    //   await delay(index * 1000);
-    //   console.log("account :", dmAccount);
-    //   let instaServive = new InstaService();
-    //   await instaServive.init(dmAccount.username, dmAccount.password);
-    //   let page = await instaServive.logIn({ cookieLogin: true, index });
-    //   // note after login need to handle the save info click to not now
-    //   console.log("login completeddd");
-    //   let finaldata = await instaServive.scanDMs(page);
-    //   let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
-    //   await instaServive.dispose();
-    //   console.log("final data :", finaldata);
-    //   const wb = xlsx.utils.book_new();
-    //   const ws = xlsx.utils.json_to_sheet(details);
-    //   // Append the worksheet to the workbook
-    //   xlsx.utils.book_append_sheet(wb, ws, "UserIDs");
-    //   // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
-    //   // Write the workbook to a file
-    //   let filePath = path.join(__dirname, `${dmAccount.username}.xlsx`);
-    //   xlsx.writeFile(wb, filePath);
-    //   // console.log("links :", links.length);
-    //   xlsx.writeFile(wb, filePath);
-    //   const bucket = amdin.storage().bucket();
-    //   await bucket.upload(filePath, {
-    //     destination: `insta-data/${dmAccount.username}.xlsx`,
-    //     metadata: {
-    //       contentType:
-    //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    //     },
-    //   });
-    //   const file = bucket.file(`insta-data/${dmAccount.username}.xlsx`);
-    //   const [url] = await file.getSignedUrl({
-    //     action: "read",
-    //     expires: "03-01-2500", // Set an appropriate expiration date
-    //   });
-    //   var endTime = performance.now();
-    //   await sendMail(
-    //     process.env.EMAIL!,
-    //     `Insta-report-${dmAccount.username}`,
-    //     `
-    //     <div>
-    //       DM scan for account ${dmAccount.username}
-    //       time for execution - ${endTime - startTime} milliseconds
-    //       <a href="${url}">${dmAccount.username}.xlsx</a>
-    //     </div>
-    //     `
-    //   );
-    // });
-    // await Promise.all(promise);
     // // get dm links
     // for (let index = 0; index < dmAccounts.length; index++) {
     var startTime = performance.now();
-    const dmAccount = constants_1.dmAccounts[index];
+    const dmAccount = constants_1.fetchAccounts[index];
     console.log("account :", dmAccount);
     let instaServive = new insta_service_1.default();
     yield instaServive.init(dmAccount.username, dmAccount.password);
-    let page = yield instaServive.logIn({ cookieLogin: true, index: index });
+    let page = yield instaServive.logIn({ cookieLogin: true, index: index + 10 });
     // note after login need to handle the save info click to not now
     console.log("login completeddd");
     // await delay(10000000);
     let finaldata = yield instaServive.scanDMs(page);
     let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
     let links = Object.keys(finaldata).map((dmData) => finaldata[dmData]["link"]);
-    console.log("data :", links);
+    console.log("links :", links);
     let data = yield instaServive.sendDMAndFetchData(links.reverse());
     console.log("data :", data);
     yield instaServive.dispose();
     const wb = xlsx_1.default.utils.book_new();
-    const ws = xlsx_1.default.utils.json_to_sheet(data);
+    const ws = xlsx_1.default.utils.json_to_sheet(details);
     // Append the worksheet to the workbook
     xlsx_1.default.utils.book_append_sheet(wb, ws, "UserIDs");
     // const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });

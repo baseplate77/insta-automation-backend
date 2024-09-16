@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 const algorithm = "aes-256-cbc";
-const keyString = "this a random key";
+const keyString = process.env.KEY!;
 const key = crypto
   .createHash("sha256")
   .update(keyString)

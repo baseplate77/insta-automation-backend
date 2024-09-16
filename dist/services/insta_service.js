@@ -191,8 +191,8 @@ class InstaService {
             return profileData;
         });
     }
-    sendDMAndFetchData(links) {
-        return __awaiter(this, void 0, void 0, function* () {
+    sendDMAndFetchData(links_1) {
+        return __awaiter(this, arguments, void 0, function* (links, sendMessage = true) {
             // send DMs
             let seenStatusSelector = "div.x78zum5.x1r8uery.xdt5ytf.x1iyjqo2.xmz0i5r.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div > div > div:nth-child(3) > div > div:nth-child(2) > div > div > div > div.x78zum5.x13a6bvl.xvrgn94.x7ggn4r.xhepvqq > span";
             let msgListSelector = "div.x78zum5.x1r8uery.xdt5ytf.x1iyjqo2.xmz0i5r.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div > div > div:nth-child(3) > div";
@@ -306,7 +306,7 @@ class InstaService {
                             }
                             yield newPage.close();
                         }
-                        userDetails.push({
+                        let d = {
                             userIdUrl: profileUrl,
                             userId,
                             dmLink: link,
@@ -317,15 +317,17 @@ class InstaService {
                             chatActiveTime,
                             hasSeenMsg,
                             hasReplied,
-                        });
-                        console.log("details", userDetails);
+                        };
+                        userDetails.push(d);
+                        console.log("details", d, userDetails.length);
                     }
                     catch (error) {
                         console.log("urserid is not finc for this :", link);
                         throw "not able to dm this user as it has been block";
                     }
                     // send message
-                    yield this.sendDM(page, "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛", userId, cursor);
+                    if (sendMessage)
+                        yield this.sendDM(page, "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛", userId, cursor);
                     // await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
                     // let messageInputElement = await page.$(messageInputSelector);
                     // if (messageInputElement === null || messageInputElement === undefined)
@@ -385,7 +387,7 @@ class InstaService {
                 }
                 yield (0, delay_1.default)(500);
                 yield page.keyboard.press("Tab");
-                // await page.keyboard.press("Enter");
+                yield page.keyboard.press("Enter");
                 yield (0, delay_1.default)(2000);
             }
             catch (error) {
@@ -669,9 +671,88 @@ class InstaService {
                     console.log("saving the cookies");
                     // Save cookies to a file or database
                     const cookies = yield page.cookies();
+                    // if (setCookie) {
+                    //   setCookie(cookies);
+                    // }
                     const cookieFilePath = path_1.default.join(__dirname, `cookies-${index !== null && index !== void 0 ? index : 0}.json`);
                     try {
                         fs_1.default.writeFileSync(cookieFilePath, JSON.stringify(cookies));
+                        console.log("Cookies saved!");
+                    }
+                    catch (error) {
+                        console.error("Error saving cookies:", error);
+                    }
+                    yield this.saveInfoNotNow(page, cursor);
+                    yield page.waitForSelector("section > main", { timeout: 0 });
+                    yield (0, delay_1.default)(1000);
+                }
+                return page;
+            }
+            catch (error) {
+                console.log("error in login the user", error);
+                throw error;
+            }
+        });
+    }
+    dblogIn(_a) {
+        return __awaiter(this, arguments, void 0, function* ({ cookieLogin = true, cookie, setCookie, }) {
+            if (this.userId === "" && this.userId === undefined)
+                throw "userid is not define";
+            if (this.password === "" && this.password === undefined)
+                throw "password is not define";
+            try {
+                let page = yield this.browser.newPage();
+                yield (0, mouse_helper_1.installMouseHelper)(page);
+                if (cookieLogin &&
+                    cookie
+                // fs.existsSync(path.join(__dirname, `cookies-${index}.json`))
+                ) {
+                    // const cookies = JSON.parse(
+                    //   fs.readFileSync(
+                    //     path.join(__dirname, `cookies-${index}.json`),
+                    //     "utf-8"
+                    //   )
+                    // );
+                    yield page.setCookie(...cookie);
+                    // Refresh the page or navigate to ensure cookies are applied
+                    yield page.goto("https://www.instagram.com/", {
+                        waitUntil: "networkidle2",
+                    });
+                }
+                else {
+                    console.log("No cookies file found. Please login first to save cookies.");
+                    yield page.goto("https://www.instagram.com/", {
+                        waitUntil: ["load", "networkidle0"],
+                        timeout: 900000,
+                    });
+                    let cursor = (0, ghost_cursor_1.createCursor)(page);
+                    yield cursor.click('input[name="username"]');
+                    // login using password
+                    yield page.type('input[name="username"]', this.userId, {
+                        delay: 100,
+                    });
+                    yield (0, delay_1.default)(1000);
+                    yield page.type('input[name="password"]', this.password, {
+                        delay: 100,
+                    });
+                    // await delay(500);
+                    cursor.click('button[type="submit"]');
+                    // await page.click('button[type="submit"]');
+                    yield page.waitForNavigation({ timeout: 0 });
+                    console.log("Login successful!");
+                    // await delay(1000);
+                    console.log("saving the cookies");
+                    // Save cookies to a file or database
+                    const cookies = yield page.cookies();
+                    if (setCookie) {
+                        setCookie(cookies);
+                    }
+                    // const cookieFilePath = path.join(
+                    //   __dirname,
+                    //   `cookies-${index ?? 0}.json`
+                    // );
+                    try {
+                        // fs.writeFileSync(cookieFilePath, JSON.stringify(cookies));
                         console.log("Cookies saved!");
                     }
                     catch (error) {

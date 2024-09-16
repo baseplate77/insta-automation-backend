@@ -6,9 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.accountModel = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const accountSchema = new mongoose_1.default.Schema({
-    usename: String,
-    password: String,
+    userId: { type: String, require: true },
+    password: { type: String, require: true },
     cookie: mongoose_1.default.Schema.Types.Mixed,
-    dm: mongoose_1.default.Schema.Types.Array,
+    isCookieValid: Boolean,
 });
 exports.accountModel = mongoose_1.default.model("account", accountSchema);

@@ -42,4 +42,6 @@ class DBService {
     console.log("Connection to MongoDB closed");
   }
 }
-export default DBService;
+const dbService = new DBService();
+
+export default dbService;

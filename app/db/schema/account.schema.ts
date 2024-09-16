@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
 const accountSchema = new mongoose.Schema({
-  usename: String,
-  password: String,
+  userId: { type: String, require: true },
+  password: { type: String, require: true },
   cookie: mongoose.Schema.Types.Mixed,
-  dm: mongoose.Schema.Types.Array,
+  isCookieValid: Boolean,
 });
 
 export const accountModel = mongoose.model("account", accountSchema);

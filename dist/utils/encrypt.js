@@ -7,7 +7,7 @@ exports.encrypt = encrypt;
 exports.decrypt = decrypt;
 const crypto_1 = __importDefault(require("crypto"));
 const algorithm = "aes-256-cbc";
-const keyString = "this a random key";
+const keyString = process.env.KEY;
 const key = crypto_1.default
     .createHash("sha256")
     .update(keyString)

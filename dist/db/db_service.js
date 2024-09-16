@@ -68,4 +68,5 @@ class DBService {
         });
     }
 }
-exports.default = DBService;
+const dbService = new DBService();
+exports.default = dbService;
