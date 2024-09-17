@@ -8,6 +8,7 @@ import fs from "fs";
 import path from "path";
 import { blockResourceRequest } from "../utils/block_request";
 import { Cursor } from "mongoose";
+import { chatAccountModel } from "../db/schema/chatAccount.schema";
 
 class InstaService {
   private userId!: string;
@@ -622,7 +623,7 @@ class InstaService {
 
       if (url.includes("challenge/")) {
         await page.waitForSelector("form > div > div:nth-child(2)", {
-          timeout: 10_000,
+          timeout: 120_000,
         });
 
         let thatWasMeBtn = await page.$("form > div > div:nth-child(2)");
@@ -672,7 +673,7 @@ class InstaService {
 
       let loadingDiv = await threadListSection?.$(loadingDivSelector);
 
-      let limit = 20;
+      let limit = 2;
       let i = 0;
       let previoursObjectLeng = -99;
       let repeatedSameValue = 0;
@@ -884,7 +885,259 @@ class InstaService {
       throw error;
     }
   }
+  async dbSendDMAndFetchData({
+    links,
+    sendMessage = true,
+  }: {
+    links: string[];
+    sendMessage?: boolean;
+  }) {
+    // send DMs
 
+    let seenStatusSelector =
+      "div.x78zum5.x1r8uery.xdt5ytf.x1iyjqo2.xmz0i5r.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div > div > div:nth-child(3) > div > div:nth-child(2) > div > div > div > div.x78zum5.x13a6bvl.xvrgn94.x7ggn4r.xhepvqq > span";
+    let msgListSelector =
+      "div.x78zum5.x1r8uery.xdt5ytf.x1iyjqo2.xmz0i5r.x6ikm8r.x10wlt62.x1n2onr6 > div > div > div > div > div > div > div:nth-child(3) > div";
+
+    let lastMsgDateSelector = "div.xjpr12u.xr9ek0c.x2b8uid > span > span";
+
+    let userIdSelector =
+      "div.x9f619.x1n2onr6.x1ja2u2z.x78zum5.xdt5ytf.x193iq5w.xeuugli.x1r8uery.x1iyjqo2.xs83m0k.xsyo7zv.x16hj40l.x10b6aqq.x1yrsyyn > a";
+    let messageInputSelector =
+      "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1i64zmx.xw3qccf.x1uhb9sk.x1plvlek.xryxfnj.x1iyjqo2.x2lwn1j.xeuugli.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div > div.xzsf02u.x1a2a7pz.x1n2onr6.x14wi4xw.x1iyjqo2.x1gh3ibb.xisnujt.xeuugli.x1odjw0f";
+    let accountCategorySelector =
+      "div > div.x1gryazu.xh8yej3.x10o80wk.x14k21rp.x17snn68.x6osk4m.x1porb0y.x8vgawa > section > main > div > header > section.xc3tme8.x1uhmqq1.x1xdureb.xo55r9g.x1vnunu7.x14tfgiu.xlrpkbc.xpoid6y.x16zxmhm.x6ikm8r.x10wlt62 > div > div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1n2onr6.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div";
+
+    let chatActiveTimeSelector =
+      "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1gslohp.x1uhb9sk.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > span";
+    let hasSeenMsgSelector =
+      "div > div.x78zum5.x13a6bvl.xvrgn94.x7ggn4r.xhepvqq > span";
+    let hasRepliedSelector = "div > span > img";
+    let userDetails: any[] = [];
+
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
+
+      let scanData = await chatAccountModel.findOne(
+        { dmLink: link },
+        { scanData: 1 }
+      );
+
+      console.log(scanData);
+
+      if (
+        scanData !== null &&
+        scanData.scanData !== undefined &&
+        scanData.scanData["userId"] !== undefined
+      ) {
+        userDetails.push({ ...scanData.scanData });
+        continue;
+      }
+      let page = await this.browser.newPage();
+      try {
+        // await blockResourceRequest(page);
+
+        await page.goto(link, { waitUntil: ["load", "networkidle2"] });
+        await this.turnOffNotificationClick(page);
+        let cursor = createCursor(page);
+        await page.waitForSelector(userIdSelector, { timeout: 5_000 });
+        await delay(500);
+        let profileUrl,
+          userId,
+          userName,
+          accountCategory,
+          country,
+          seenStatus,
+          lastMsgDate,
+          hasReplied,
+          hasSeenMsg,
+          chatActiveTime;
+
+        // dm will not be send if hasReplied, hasSeenMsg is true or chatActive was active
+
+        try {
+          await page.waitForSelector(msgListSelector, { timeout: 2_000 });
+        } catch (error) {
+          console.log("error in sendDmAndfetchData", error);
+        }
+        // console.log("message list loaded");
+
+        try {
+          let userIdElement = await page.$(userIdSelector);
+
+          profileUrl =
+            userIdElement !== null || userIdElement !== undefined
+              ? await userIdElement?.evaluate((e: any) => e.href)
+              : "";
+
+          userId = profileUrl !== "" ? profileUrl.split("/")[3] : "";
+          userName =
+            userIdElement !== null || userIdElement !== undefined
+              ? await userIdElement?.evaluate((e: any) => e.innerText)
+              : "";
+
+          let seenStatusElement = await page.$(seenStatusSelector);
+          seenStatus =
+            seenStatus !== null && seenStatus !== undefined
+              ? await seenStatusElement?.evaluate((e: any) => e.innerText)
+              : "";
+
+          let msgListElement = await page.$(msgListSelector);
+          if (msgListElement !== null && msgListElement !== undefined) {
+            let msgList = (await msgListElement.$$(":scope > *")).reverse();
+            let lastMsg = msgList[0];
+
+            let hasSeenElement = await lastMsg.$(hasSeenMsgSelector);
+
+            hasSeenMsg =
+              hasSeenElement !== undefined
+                ? await hasSeenElement?.evaluate((p: any) => p.innerText)
+                : "";
+
+            let hasRepliedElement = await lastMsg.$(hasRepliedSelector);
+            hasReplied =
+              hasRepliedElement !== undefined
+                ? await hasRepliedElement?.evaluate((p: any) => p.innerText)
+                : "";
+
+            for (let msg of msgList) {
+              let e = await msg.$(lastMsgDateSelector);
+              if (e !== undefined && e !== null) {
+                lastMsgDate = await e?.evaluate((p: any) => p.innerText);
+                break;
+              }
+            }
+          }
+
+          let chatActiveElement = await page.$(chatActiveTimeSelector);
+
+          chatActiveTime =
+            chatActiveElement !== undefined
+              ? await chatActiveElement?.evaluate((p: any) => p.innerText)
+              : "";
+
+          if (profileUrl !== undefined || profileUrl !== "") {
+            await cursor.move(userIdSelector);
+
+            let newPage = await this.browser.newPage();
+            let newCursor = createCursor(newPage);
+            await blockResourceRequest(newPage);
+            await newPage.goto(profileUrl, { waitUntil: "networkidle2" });
+
+            try {
+              await newPage.waitForSelector(accountCategorySelector, {
+                timeout: 2_000,
+              });
+
+              let accountCategoryElement = await newPage.$(
+                accountCategorySelector
+              );
+
+              accountCategory =
+                accountCategoryElement !== null
+                  ? await accountCategoryElement.evaluate(
+                      (e: any) => e.innerText
+                    )
+                  : "";
+            } catch (error) {
+              accountCategory = "";
+            }
+            let profileUserIdSelector =
+              "div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1h5jrl4.x1uhb9sk.x6ikm8r.x10wlt62.x1c4vz4f.xs83m0k.xdt5ytf.xqjyukv.x1qjc9v5.x1oa3qoh.x1nhvcw1 > div > a > h2 > span";
+
+            let userIdElement = await newPage.$(profileUserIdSelector);
+
+            if (userIdElement !== null && userIdElement !== undefined) {
+              await newCursor.click(profileUserIdSelector);
+              try {
+                let countrySelector =
+                  "div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div > div:nth-child(2) > span:nth-child(2)";
+
+                // await newPage.waitForSelector(countrySelector, {
+                //   timeout: 2_0000,
+                // });
+
+                let countryElement = await newPage.$(countrySelector);
+                let countryName = countryElement
+                  ? await countryElement.evaluate((e: any) => e.innerText)
+                  : "";
+
+                country = countryName;
+              } catch (error) {
+                console.log(
+                  "fail to find the account country element on profile page"
+                );
+              }
+            }
+
+            await newPage.close();
+          }
+          let d = {
+            userIdUrl: profileUrl,
+            userId,
+            dmLink: link,
+            userName,
+            accountCategory,
+            country,
+            lastMsgDate,
+            chatActiveTime,
+            hasSeenMsg,
+            hasReplied,
+          };
+
+          // save data
+          await chatAccountModel.updateOne(
+            { dmLink: link },
+            {
+              $set: {
+                scanData: d,
+                userId,
+                lastScanDate: Date.now(),
+              },
+            }
+          );
+          console.log("data Save");
+
+          userDetails.push(d);
+
+          console.log("details", d, userDetails.length);
+        } catch (error) {
+          console.log("urserid is not finc for this :", link);
+          throw "not able to dm this user as it has been block";
+        }
+
+        // send message
+        if (sendMessage)
+          await this.sendDM(
+            page,
+            "Just following up on my previous message. Have you had a chance to review my previous message? It’s important to address the issue promptly to restore your profile's growth. \n #Hurryup ⌛",
+            userId,
+            cursor
+          );
+
+        // await page.waitForSelector(messageInputSelector, { timeout: 5_000 });
+
+        // let messageInputElement = await page.$(messageInputSelector);
+
+        // if (messageInputElement === null || messageInputElement === undefined)
+        //   throw "unable to loccate the message element";
+
+        // cursor.click(messageInputSelector);
+
+        // await messageInputElement.type(`Hi @${userId}`, { delay: 100 });
+        // await delay(500);
+        // await page.keyboard.press("Tab");
+        // await page.keyboard.press("Enter");
+        // await delay(2000);
+      } catch (error) {
+        console.log("error :", error);
+      } finally {
+        await page.close();
+      }
+    }
+
+    return userDetails;
+  }
   async dblogIn({
     cookieLogin = true,
     cookie,
@@ -942,7 +1195,14 @@ class InstaService {
         // await delay(500);
         cursor.click('button[type="submit"]');
         // await page.click('button[type="submit"]');
-        await page.waitForNavigation({ timeout: 0 });
+
+        await delay(2000);
+        let url = page.url();
+        if (url.includes("/challenge")) {
+          throw "requied otp based authication" + this.userId;
+        } else {
+          await page.waitForNavigation({ timeout: 9000 });
+        }
 
         console.log("Login successful!");
         // await delay(1000);
@@ -970,8 +1230,7 @@ class InstaService {
 
       return page;
     } catch (error) {
-      console.log("error in login the user", error);
-      throw error;
+      console.log(`error in login for userID  : ${this.userId} \n `, error);
     }
   }
 
