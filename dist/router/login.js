@@ -121,6 +121,7 @@ loginRouter.get("/login-all-accounts", (req, res) => __awaiter(void 0, void 0, v
                 yield Promise.all([...promise]);
             }
         }
+        console.log("all login complete");
     }
     catch (error) {
         console.log("error :", error);
