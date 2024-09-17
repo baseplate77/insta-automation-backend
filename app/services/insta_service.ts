@@ -1201,7 +1201,7 @@ class InstaService {
         if (url.includes("/challenge")) {
           throw "requied otp based authication" + this.userId;
         } else {
-          await page.waitForNavigation({ timeout: 120000 });
+          await page.waitForNavigation({ timeout: 90000 });
         }
 
         console.log("Login successful!");
@@ -1224,7 +1224,7 @@ class InstaService {
           console.error("Error saving cookies:", error);
         }
         await this.saveInfoNotNow(page, cursor);
-        await page.waitForSelector("section > main", { timeout: 0 });
+        await page.waitForSelector("section > main", { timeout: 90000 });
         await delay(1000);
       }
 

@@ -955,7 +955,7 @@ class InstaService {
                         throw "requied otp based authication" + this.userId;
                     }
                     else {
-                        yield page.waitForNavigation({ timeout: 120000 });
+                        yield page.waitForNavigation({ timeout: 90000 });
                     }
                     console.log("Login successful!");
                     // await delay(1000);
@@ -977,7 +977,7 @@ class InstaService {
                         console.error("Error saving cookies:", error);
                     }
                     yield this.saveInfoNotNow(page, cursor);
-                    yield page.waitForSelector("section > main", { timeout: 0 });
+                    yield page.waitForSelector("section > main", { timeout: 90000 });
                     yield (0, delay_1.default)(1000);
                 }
                 return page;
