@@ -1201,7 +1201,7 @@ class InstaService {
         if (url.includes("/challenge")) {
           throw "requied otp based authication" + this.userId;
         } else {
-          await page.waitForNavigation({ timeout: 9000 });
+          await page.waitForNavigation({ timeout: 120000 });
         }
 
         console.log("Login successful!");

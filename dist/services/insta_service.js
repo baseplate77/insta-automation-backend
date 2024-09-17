@@ -955,7 +955,7 @@ class InstaService {
                         throw "requied otp based authication" + this.userId;
                     }
                     else {
-                        yield page.waitForNavigation({ timeout: 9000 });
+                        yield page.waitForNavigation({ timeout: 120000 });
                     }
                     console.log("Login successful!");
                     // await delay(1000);
