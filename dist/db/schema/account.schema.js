@@ -8,6 +8,11 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const accountSchema = new mongoose_1.default.Schema({
     userId: { type: String, require: true },
     password: { type: String, require: true },
+    node: { type: Number, require: true },
+    gender: String,
+    executiveName: String,
+    phoneBackNumber: String,
+    appNo: String,
     cookie: mongoose_1.default.Schema.Types.Mixed,
     isCookieValid: Boolean,
 });

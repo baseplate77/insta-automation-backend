@@ -37,6 +37,11 @@ scanRouter.get("/scan-dm-db", (req, res) => __awaiter(void 0, void 0, void 0, fu
                 account.isCookieValid = true;
                 yield account.save();
             }),
+            onFail: () => __awaiter(void 0, void 0, void 0, function* () {
+                account.isCookieValid = false;
+                account.cookie = undefined;
+                yield account.save();
+            }),
         });
         let data = yield instaService.scanDMs(page);
         yield instaService.dispose();
@@ -86,6 +91,11 @@ scanRouter.get("/full-scan-send-dm", (req, res) => __awaiter(void 0, void 0, voi
                 account.isCookieValid = true;
                 yield account.save();
             }),
+            onFail: () => __awaiter(void 0, void 0, void 0, function* () {
+                account.isCookieValid = false;
+                account.cookie = undefined;
+                yield account.save();
+            }),
         });
         let data = links.map((d) => d.dmLink);
         let finalData = yield instaService.dbSendDMAndFetchData({
@@ -100,3 +110,4 @@ scanRouter.get("/full-scan-send-dm", (req, res) => __awaiter(void 0, void 0, voi
     }
 }));
 exports.default = scanRouter;
+// https://www.instagram.com/graphql/query

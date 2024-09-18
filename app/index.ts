@@ -6,7 +6,6 @@ import fs, { link } from "fs";
 import path from "path";
 import xlsx from "xlsx";
 import InstaService from "./services/insta_service";
-import { dmAccounts, fetchAccounts, testAccounts } from "./utils/constants";
 import { amdin } from "./utils/firebase";
 import { sendMail } from "./utils/resend";
 import DBService from "./db/db_service";
@@ -19,6 +18,7 @@ import bodyParser from "body-parser";
 import { chatAccountModel } from "./db/schema/chatAccount.schema";
 import loginRouter from "./router/login";
 import scanRouter from "./router/scan";
+import { dmAccounts, fetchAccounts, testAccounts } from "./utils/accounts";
 
 dbService.connect();
 

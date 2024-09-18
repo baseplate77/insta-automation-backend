@@ -2,13 +2,97 @@ import express, { Request, Response } from "express";
 import { accountModel } from "../db/schema/account.schema";
 import InstaService from "../services/insta_service";
 import { decrypt, encrypt } from "../utils/encrypt";
+import { acss } from "../utils/accounts";
 
 const loginRouter = express.Router();
 
-loginRouter.post("/add-account", async (req: Request, res: Response) => {
-  const accounts: any[] = req.body as any[];
+loginRouter.post("/login-by-userid", async (req: Request, res: Response) => {
+  let userIds = req.body as any;
 
   try {
+    if (userIds === undefined) throw "no userid is define";
+    const batchSize = 2;
+    for (let i = 0; i < userIds.length; i += batchSize) {
+      const batch = userIds.slice(i, i + batchSize);
+      const promises = batch.map(async (userId: string) => {
+        let account = await accountModel.findOne({ userId: userId });
+        if (account !== null) {
+          let instaService = new InstaService();
+
+          let decryptPassword = decrypt(account?.password!);
+
+          console.log(account?.userId, decryptPassword);
+          //   return;
+          await instaService.init(account?.userId!, decryptPassword);
+
+          await instaService.dblogIn({
+            cookieLogin: true,
+            cookie: undefined,
+            setCookie: async (cookie: any) => {
+              account.cookie = cookie;
+              account.isCookieValid = true;
+              await account?.save();
+            },
+            onFail: async () => {
+              account.isCookieValid = false;
+              account.cookie = undefined;
+              await account.save();
+            },
+          });
+
+          await instaService.dispose();
+        }
+        return account;
+      });
+      const accounts = await Promise.all(promises);
+
+      // Process accounts if needed
+    }
+    res.send("done");
+  } catch (error) {
+    console.log("error :", error);
+    res.status(500).send({ error: error, success: false });
+  }
+});
+
+loginRouter.get("/test-add-account", async (req: Request, res: Response) => {
+  let accounts = acss.map(
+    ([ff, phoneBackNumber, executiveName, appNo, userId, password]) => {
+      let encrpytPassword = encrypt(password.toString());
+      return {
+        phoneBackNumber,
+        executiveName,
+        appNo,
+        userId,
+        password: encrpytPassword,
+        node: 14,
+        isCookieValid: false,
+      };
+    }
+  );
+
+  for (let aData of accounts) {
+    let a = await accountModel.findOne({ userId: aData.userId });
+    console.log("account :", a);
+    if (a !== null) {
+      console.log(a.userId, "account already exist");
+      continue;
+    }
+    let account = await accountModel.create({
+      ...aData,
+    });
+
+    await account.save();
+  }
+
+  res.send(accounts);
+});
+
+loginRouter.post("/add-account", async (req: Request, res: Response) => {
+  const { accounts, node } = req.body as any;
+
+  try {
+    if (node === undefined) throw "node number need to be specified";
     if (accounts === undefined) throw "no details where provided";
     for (let { userId, password } of accounts) {
       let encrpytPassword = encrypt(password);
@@ -25,6 +109,7 @@ loginRouter.post("/add-account", async (req: Request, res: Response) => {
         password: encrpytPassword,
         isCookieValid: false,
         cookie: {},
+        node: node,
       });
 
       await account.save();
@@ -119,6 +204,11 @@ loginRouter.get("/login-all-accounts", async (req: Request, res: Response) => {
             setCookie: async (cookie: any) => {
               account.cookie = cookie;
               account.isCookieValid = true;
+              await account.save();
+            },
+            onFail: async () => {
+              account.isCookieValid = false;
+              account.cookie = undefined;
               await account.save();
             },
           });

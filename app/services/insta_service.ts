@@ -1142,10 +1142,12 @@ class InstaService {
     cookieLogin = true,
     cookie,
     setCookie,
+    onFail,
   }: {
     cookieLogin: boolean;
     cookie?: any;
     setCookie?: any;
+    onFail?: any;
   }): Promise<Page | undefined> {
     if (this.userId === "" && this.userId === undefined)
       throw "userid is not define";
@@ -1231,6 +1233,7 @@ class InstaService {
       return page;
     } catch (error) {
       console.log(`error in login for userID  : ${this.userId} \n `, error);
+      if (onFail) onFail();
     }
   }
 

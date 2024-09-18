@@ -19,7 +19,6 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const xlsx_1 = __importDefault(require("xlsx"));
 const insta_service_1 = __importDefault(require("./services/insta_service"));
-const constants_1 = require("./utils/constants");
 const firebase_1 = require("./utils/firebase");
 const resend_1 = require("./utils/resend");
 const account_schema_1 = require("./db/schema/account.schema");
@@ -30,6 +29,7 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const chatAccount_schema_1 = require("./db/schema/chatAccount.schema");
 const login_1 = __importDefault(require("./router/login"));
 const scan_1 = __importDefault(require("./router/scan"));
+const accounts_1 = require("./utils/accounts");
 db_service_1.default.connect();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
@@ -59,7 +59,7 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 app.get("/test-login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send("started");
-    let promise = constants_1.testAccounts.map((account, index) => __awaiter(void 0, void 0, void 0, function* () {
+    let promise = accounts_1.testAccounts.map((account, index) => __awaiter(void 0, void 0, void 0, function* () {
         // const account = testAccounts[index];
         console.log("account :", account, index + 1);
         try {
@@ -79,7 +79,7 @@ app.get("/test-login", (req, res) => __awaiter(void 0, void 0, void 0, function*
 app.get("/test-scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send("started");
     try {
-        let promise = constants_1.testAccounts.map((dmAccount, index) => __awaiter(void 0, void 0, void 0, function* () {
+        let promise = accounts_1.testAccounts.map((dmAccount, index) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 var startTime = performance.now();
                 console.log("account :", dmAccount);
@@ -181,7 +181,7 @@ app.get("/scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     // // get dm links
     // for (let index = 0; index < dmAccounts.length; index++) {
     var startTime = performance.now();
-    const dmAccount = constants_1.dmAccounts[index];
+    const dmAccount = accounts_1.dmAccounts[index];
     console.log("account :", dmAccount);
     let instaServive = new insta_service_1.default();
     yield instaServive.init(dmAccount.userId, dmAccount.password);
@@ -250,7 +250,7 @@ app.get("/send-msg", (req, res) => __awaiter(void 0, void 0, void 0, function* (
         "https://www.instagram.com/direct/t/114496199940296/",
     ];
     try {
-        let dmAccount = constants_1.fetchAccounts[index];
+        let dmAccount = accounts_1.fetchAccounts[index];
         console.log("account :", dmAccount);
         let instaServive = new insta_service_1.default();
         yield instaServive.init(dmAccount.userId, dmAccount.password);
@@ -303,7 +303,7 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // get dm links
     // for (let index = 0; index < 1; index++) {
     var startTime = performance.now();
-    const dmAccount = constants_1.dmAccounts[index];
+    const dmAccount = accounts_1.dmAccounts[index];
     console.log("account :", dmAccount);
     let instaServive = new insta_service_1.default();
     yield instaServive.init(dmAccount.userId, dmAccount.password);
@@ -326,7 +326,7 @@ app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.log("account Link :", accountLinks);
         instaServive = new insta_service_1.default();
         let accountNo = (i / linksPerAccount) % noOfAccount;
-        let fetchAccount = constants_1.fetchAccounts[accountNo];
+        let fetchAccount = accounts_1.fetchAccounts[accountNo];
         console.log("fetch account :", fetchAccount, accountNo);
         yield instaServive.init(fetchAccount.userId, fetchAccount.password);
         yield instaServive.logIn({ cookieLogin: true, index: index });
@@ -375,9 +375,9 @@ app.get("/test2", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // test on 10 acounts
     res.send("started");
     // get dm links
-    for (let index = 5; index < constants_1.dmAccounts.length; index++) {
+    for (let index = 5; index < accounts_1.dmAccounts.length; index++) {
         var startTime = performance.now();
-        const dmAccount = constants_1.dmAccounts[index];
+        const dmAccount = accounts_1.dmAccounts[index];
         console.log("account :", dmAccount);
         let instaServive = new insta_service_1.default();
         yield instaServive.init(dmAccount.userId, dmAccount.password);
@@ -392,7 +392,7 @@ app.get("/test2", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // console.log("final data :", finaldata);
         // scan the ids
         instaServive = new insta_service_1.default();
-        let fetchAccount = constants_1.fetchAccounts[index];
+        let fetchAccount = accounts_1.fetchAccounts[index];
         yield instaServive.init(fetchAccount.userId, fetchAccount.password);
         yield instaServive.logIn({ cookieLogin: true, index: index + 100 });
         let userids = yield instaServive.fetchUserIdFromDmLinks(links.slice(0, 100));
@@ -442,7 +442,7 @@ app.get("/insta-login", (req, res) => __awaiter(void 0, void 0, void 0, function
         //   // });
         //   console.log("page loaded ");
         let instaServive = new insta_service_1.default();
-        let fetchAccount = constants_1.fetchAccounts[0];
+        let fetchAccount = accounts_1.fetchAccounts[0];
         yield instaServive.init(fetchAccount.userId, fetchAccount.password);
         //   try {
         let page = yield instaServive.logIn({ cookieLogin: true });

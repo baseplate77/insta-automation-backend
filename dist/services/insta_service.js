@@ -906,7 +906,7 @@ class InstaService {
         });
     }
     dblogIn(_a) {
-        return __awaiter(this, arguments, void 0, function* ({ cookieLogin = true, cookie, setCookie, }) {
+        return __awaiter(this, arguments, void 0, function* ({ cookieLogin = true, cookie, setCookie, onFail, }) {
             if (this.userId === "" && this.userId === undefined)
                 throw "userid is not define";
             if (this.password === "" && this.password === undefined)
@@ -984,6 +984,8 @@ class InstaService {
             }
             catch (error) {
                 console.log(`error in login for userID  : ${this.userId} \n `, error);
+                if (onFail)
+                    onFail();
             }
         });
     }

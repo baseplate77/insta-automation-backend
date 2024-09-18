@@ -16,10 +16,82 @@ const express_1 = __importDefault(require("express"));
 const account_schema_1 = require("../db/schema/account.schema");
 const insta_service_1 = __importDefault(require("../services/insta_service"));
 const encrypt_1 = require("../utils/encrypt");
+const accounts_1 = require("../utils/accounts");
 const loginRouter = express_1.default.Router();
-loginRouter.post("/add-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const accounts = req.body;
+loginRouter.post("/login-by-userid", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let userIds = req.body;
     try {
+        if (userIds === undefined)
+            throw "no userid is define";
+        const batchSize = 2;
+        for (let i = 0; i < userIds.length; i += batchSize) {
+            const batch = userIds.slice(i, i + batchSize);
+            const promises = batch.map((userId) => __awaiter(void 0, void 0, void 0, function* () {
+                let account = yield account_schema_1.accountModel.findOne({ userId: userId });
+                if (account !== null) {
+                    let instaService = new insta_service_1.default();
+                    let decryptPassword = (0, encrypt_1.decrypt)(account === null || account === void 0 ? void 0 : account.password);
+                    console.log(account === null || account === void 0 ? void 0 : account.userId, decryptPassword);
+                    //   return;
+                    yield instaService.init(account === null || account === void 0 ? void 0 : account.userId, decryptPassword);
+                    yield instaService.dblogIn({
+                        cookieLogin: true,
+                        cookie: undefined,
+                        setCookie: (cookie) => __awaiter(void 0, void 0, void 0, function* () {
+                            account.cookie = cookie;
+                            account.isCookieValid = true;
+                            yield (account === null || account === void 0 ? void 0 : account.save());
+                        }),
+                        onFail: () => __awaiter(void 0, void 0, void 0, function* () {
+                            account.isCookieValid = false;
+                            account.cookie = undefined;
+                            yield account.save();
+                        }),
+                    });
+                    yield instaService.dispose();
+                }
+                return account;
+            }));
+            const accounts = yield Promise.all(promises);
+            // Process accounts if needed
+        }
+        res.send("done");
+    }
+    catch (error) {
+        console.log("error :", error);
+        res.status(500).send({ error: error, success: false });
+    }
+}));
+loginRouter.get("/test-add-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let accounts = accounts_1.acss.map(([ff, phoneBackNumber, executiveName, appNo, userId, password]) => {
+        let encrpytPassword = (0, encrypt_1.encrypt)(password.toString());
+        return {
+            phoneBackNumber,
+            executiveName,
+            appNo,
+            userId,
+            password: encrpytPassword,
+            node: 14,
+            isCookieValid: false,
+        };
+    });
+    for (let aData of accounts) {
+        let a = yield account_schema_1.accountModel.findOne({ userId: aData.userId });
+        console.log("account :", a);
+        if (a !== null) {
+            console.log(a.userId, "account already exist");
+            continue;
+        }
+        let account = yield account_schema_1.accountModel.create(Object.assign({}, aData));
+        yield account.save();
+    }
+    res.send(accounts);
+}));
+loginRouter.post("/add-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { accounts, node } = req.body;
+    try {
+        if (node === undefined)
+            throw "node number need to be specified";
         if (accounts === undefined)
             throw "no details where provided";
         for (let { userId, password } of accounts) {
@@ -36,6 +108,7 @@ loginRouter.post("/add-account", (req, res) => __awaiter(void 0, void 0, void 0,
                 password: encrpytPassword,
                 isCookieValid: false,
                 cookie: {},
+                node: node,
             });
             yield account.save();
         }
@@ -113,6 +186,11 @@ loginRouter.get("/login-all-accounts", (req, res) => __awaiter(void 0, void 0, v
                         setCookie: (cookie) => __awaiter(void 0, void 0, void 0, function* () {
                             account.cookie = cookie;
                             account.isCookieValid = true;
+                            yield account.save();
+                        }),
+                        onFail: () => __awaiter(void 0, void 0, void 0, function* () {
+                            account.isCookieValid = false;
+                            account.cookie = undefined;
                             yield account.save();
                         }),
                     });

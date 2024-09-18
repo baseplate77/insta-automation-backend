@@ -27,6 +27,11 @@ scanRouter.get("/scan-dm-db", async (req: Request, res: Response) => {
         account.isCookieValid = true;
         await account.save();
       },
+      onFail: async () => {
+        account.isCookieValid = false;
+        account.cookie = undefined;
+        await account.save();
+      },
     });
 
     let data = await instaService.scanDMs(page!);
@@ -88,6 +93,11 @@ scanRouter.get("/full-scan-send-dm", async (req: Request, res: Response) => {
         account.isCookieValid = true;
         await account.save();
       },
+      onFail: async () => {
+        account.isCookieValid = false;
+        account.cookie = undefined;
+        await account.save();
+      },
     });
 
     let data: string[] = links.map((d) => d.dmLink!);
@@ -104,3 +114,5 @@ scanRouter.get("/full-scan-send-dm", async (req: Request, res: Response) => {
 });
 
 export default scanRouter;
+
+// https://www.instagram.com/graphql/query
