@@ -30,10 +30,13 @@ const chatAccount_schema_1 = require("./db/schema/chatAccount.schema");
 const login_1 = __importDefault(require("./router/login"));
 const scan_1 = __importDefault(require("./router/scan"));
 const accounts_1 = require("./utils/accounts");
+const accounts_2 = __importDefault(require("./router/accounts"));
+const cors_1 = __importDefault(require("cors"));
 db_service_1.default.connect();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 app.use(body_parser_1.default.json());
+app.use((0, cors_1.default)());
 // const dbTest = async () => {
 //   // const cookies = JSON.parse(
 //   //   fs.readFileSync(path.join(__dirname, `cookies-${0}.json`), "utf-8")
@@ -47,6 +50,7 @@ app.use(body_parser_1.default.json());
 //   console.log("a ;", a);
 // };
 // dbTest();
+app.use(accounts_2.default);
 app.use(login_1.default);
 app.use(scan_1.default);
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

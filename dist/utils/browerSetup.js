@@ -138,7 +138,6 @@ class GlobalBroswer {
                 protocolTimeout: 0,
                 timeout: 0,
                 // headless: true,
-                headless: false,
                 args: [
                     "--disable-gpu",
                     "--disable-setuid-sandbox",

@@ -2,7 +2,6 @@ import express, { Request, Response } from "express";
 import { accountModel } from "../db/schema/account.schema";
 import InstaService from "../services/insta_service";
 import { decrypt, encrypt } from "../utils/encrypt";
-import { acss } from "../utils/accounts";
 
 const loginRouter = express.Router();
 
@@ -45,6 +44,7 @@ loginRouter.post("/login-by-userid", async (req: Request, res: Response) => {
         return account;
       });
       const accounts = await Promise.all(promises);
+      console.log("accounts ", accounts);
 
       // Process accounts if needed
     }
@@ -52,117 +52,6 @@ loginRouter.post("/login-by-userid", async (req: Request, res: Response) => {
   } catch (error) {
     console.log("error :", error);
     res.status(500).send({ error: error, success: false });
-  }
-});
-
-loginRouter.get("/test-add-account", async (req: Request, res: Response) => {
-  let accounts = acss.map(
-    ([ff, phoneBackNumber, executiveName, appNo, userId, password]) => {
-      let encrpytPassword = encrypt(password.toString());
-      return {
-        phoneBackNumber,
-        executiveName,
-        appNo,
-        userId,
-        password: encrpytPassword,
-        node: 14,
-        isCookieValid: false,
-      };
-    }
-  );
-
-  for (let aData of accounts) {
-    let a = await accountModel.findOne({ userId: aData.userId });
-    console.log("account :", a);
-    if (a !== null) {
-      console.log(a.userId, "account already exist");
-      continue;
-    }
-    let account = await accountModel.create({
-      ...aData,
-    });
-
-    await account.save();
-  }
-
-  res.send(accounts);
-});
-
-loginRouter.post("/add-account", async (req: Request, res: Response) => {
-  const { accounts, node } = req.body as any;
-
-  try {
-    if (node === undefined) throw "node number need to be specified";
-    if (accounts === undefined) throw "no details where provided";
-    for (let { userId, password } of accounts) {
-      let encrpytPassword = encrypt(password);
-      console.log(userId, password);
-
-      let a = await accountModel.findOne({ userId: userId });
-      console.log("account :", a);
-      if (a !== null) {
-        console.log(a.userId, "account already exist");
-        continue;
-      }
-      let account = await accountModel.create({
-        userId,
-        password: encrpytPassword,
-        isCookieValid: false,
-        cookie: {},
-        node: node,
-      });
-
-      await account.save();
-    }
-    res.send({ success: true, addAccountNo: accounts.length });
-  } catch (error) {
-    console.log("unable to add account to db : ", error);
-    res.status(500).send({ error: error, success: false });
-  }
-});
-
-loginRouter.get("/get-accounts", async (req: Request, res: Response) => {
-  try {
-    let accounts = await accountModel.find({}, { password: 1, userId: 1 });
-
-    let ac = accounts.map((a) => {
-      let decrpytPassword = decrypt(a.password!);
-      return {
-        userId: a.userId,
-        password: decrpytPassword,
-      };
-    });
-
-    res.send(ac);
-  } catch (error: any) {
-    console.log("error ", error);
-    res.status(500).send({ success: false, error: error.toString() });
-  }
-});
-
-loginRouter.post("/update-password", async (req: Request, res: Response) => {
-  const { userId, newPassword } = req.body;
-
-  try {
-    let account = await accountModel.findOne(
-      { userId: userId },
-      { password: 1 }
-    );
-
-    if (account === null) return "no entry with this userId was found";
-    if (newPassword === "" || newPassword === undefined)
-      throw "new password was empty";
-    const encrpytPassword = encrypt(newPassword);
-
-    account.password = encrpytPassword;
-    await account.save();
-    console.log("password updated");
-
-    res.send({ success: true });
-  } catch (error: any) {
-    console.log("error in updating password :", userId, error);
-
-    res.status(500).send({ success: false, error: error.toString() });
   }
 });
 

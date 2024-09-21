@@ -2,31 +2,30 @@ import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 dotenv.config();
 
-import fs, { link } from "fs";
+import fs from "fs";
 import path from "path";
 import xlsx from "xlsx";
 import InstaService from "./services/insta_service";
 import { amdin } from "./utils/firebase";
 import { sendMail } from "./utils/resend";
-import DBService from "./db/db_service";
 import { accountModel } from "./db/schema/account.schema";
 import delay from "./utils/delay";
 import { decrypt, encrypt } from "./utils/encrypt";
-import mongoose from "mongoose";
 import dbService from "./db/db_service";
 import bodyParser from "body-parser";
 import { chatAccountModel } from "./db/schema/chatAccount.schema";
 import loginRouter from "./router/login";
 import scanRouter from "./router/scan";
 import { dmAccounts, fetchAccounts, testAccounts } from "./utils/accounts";
-
+import accountRouter from "./router/accounts";
+import cors from "cors";
 dbService.connect();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-
+app.use(cors());
 // const dbTest = async () => {
 //   // const cookies = JSON.parse(
 //   //   fs.readFileSync(path.join(__dirname, `cookies-${0}.json`), "utf-8")
@@ -44,6 +43,7 @@ app.use(bodyParser.json());
 
 // dbTest();
 
+app.use(accountRouter);
 app.use(loginRouter);
 app.use(scanRouter);
 

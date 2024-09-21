@@ -16,7 +16,6 @@ const express_1 = __importDefault(require("express"));
 const account_schema_1 = require("../db/schema/account.schema");
 const insta_service_1 = __importDefault(require("../services/insta_service"));
 const encrypt_1 = require("../utils/encrypt");
-const accounts_1 = require("../utils/accounts");
 const loginRouter = express_1.default.Router();
 loginRouter.post("/login-by-userid", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let userIds = req.body;
@@ -53,6 +52,7 @@ loginRouter.post("/login-by-userid", (req, res) => __awaiter(void 0, void 0, voi
                 return account;
             }));
             const accounts = yield Promise.all(promises);
+            console.log("accounts ", accounts);
             // Process accounts if needed
         }
         res.send("done");
@@ -60,99 +60,6 @@ loginRouter.post("/login-by-userid", (req, res) => __awaiter(void 0, void 0, voi
     catch (error) {
         console.log("error :", error);
         res.status(500).send({ error: error, success: false });
-    }
-}));
-loginRouter.get("/test-add-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let accounts = accounts_1.acss.map(([ff, phoneBackNumber, executiveName, appNo, userId, password]) => {
-        let encrpytPassword = (0, encrypt_1.encrypt)(password.toString());
-        return {
-            phoneBackNumber,
-            executiveName,
-            appNo,
-            userId,
-            password: encrpytPassword,
-            node: 14,
-            isCookieValid: false,
-        };
-    });
-    for (let aData of accounts) {
-        let a = yield account_schema_1.accountModel.findOne({ userId: aData.userId });
-        console.log("account :", a);
-        if (a !== null) {
-            console.log(a.userId, "account already exist");
-            continue;
-        }
-        let account = yield account_schema_1.accountModel.create(Object.assign({}, aData));
-        yield account.save();
-    }
-    res.send(accounts);
-}));
-loginRouter.post("/add-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { accounts, node } = req.body;
-    try {
-        if (node === undefined)
-            throw "node number need to be specified";
-        if (accounts === undefined)
-            throw "no details where provided";
-        for (let { userId, password } of accounts) {
-            let encrpytPassword = (0, encrypt_1.encrypt)(password);
-            console.log(userId, password);
-            let a = yield account_schema_1.accountModel.findOne({ userId: userId });
-            console.log("account :", a);
-            if (a !== null) {
-                console.log(a.userId, "account already exist");
-                continue;
-            }
-            let account = yield account_schema_1.accountModel.create({
-                userId,
-                password: encrpytPassword,
-                isCookieValid: false,
-                cookie: {},
-                node: node,
-            });
-            yield account.save();
-        }
-        res.send({ success: true, addAccountNo: accounts.length });
-    }
-    catch (error) {
-        console.log("unable to add account to db : ", error);
-        res.status(500).send({ error: error, success: false });
-    }
-}));
-loginRouter.get("/get-accounts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        let accounts = yield account_schema_1.accountModel.find({}, { password: 1, userId: 1 });
-        let ac = accounts.map((a) => {
-            let decrpytPassword = (0, encrypt_1.decrypt)(a.password);
-            return {
-                userId: a.userId,
-                password: decrpytPassword,
-            };
-        });
-        res.send(ac);
-    }
-    catch (error) {
-        console.log("error ", error);
-        res.status(500).send({ success: false, error: error.toString() });
-    }
-}));
-loginRouter.post("/update-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId, newPassword } = req.body;
-    try {
-        let account = yield account_schema_1.accountModel.findOne({ userId: userId }, { password: 1 });
-        if (account === null)
-            return "no entry with this userId was found";
-        if (newPassword === "" || newPassword === undefined)
-            throw "new password was empty";
-        const encrpytPassword = (0, encrypt_1.encrypt)(newPassword);
-        account.password = encrpytPassword;
-        yield account.save();
-        console.log("password updated");
-        res.send({ success: true });
-    }
-    catch (error) {
-        console.log("error in updating password :", userId, error);
-        res.status(500).send({ success: false, error: error.toString() });
     }
 }));
 loginRouter.get("/login-all-accounts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
