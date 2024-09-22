@@ -6,6 +6,75 @@ import { chatAccountModel } from "../db/schema/chatAccount.schema";
 
 const scanRouter = express.Router();
 
+scanRouter.get("/scan-dm-db-test", async (req: Request, res: Response) => {
+  res.send("started");
+  //   66e92a56b2edd4862ce157a2
+  // const { accountId } = req.query;
+  // let account = await accountModel.findById(accountId);
+
+  // if (account === null) throw "no account with that id exists";
+
+  try {
+    let accounts = await accountModel.find({ isCookieValid: true });
+    let batchSize = 2;
+    for (let i = 0; i < accounts.length; i += batchSize) {
+      const batch = accounts.slice(i, i + batchSize);
+
+      let promise = batch.map(async (account) => {
+        try {
+          let decryptPassword = decrypt(account.password!);
+          let instaService = new InstaService();
+
+          await instaService.init(account.userId!, decryptPassword);
+
+          let page = await instaService.dblogIn({
+            cookieLogin: true,
+            cookie: account.isCookieValid ? account.cookie : undefined,
+            setCookie: async (cookie: any) => {
+              account.cookie = cookie;
+              account.isCookieValid = true;
+              await account.save();
+            },
+            onFail: async () => {
+              account.isCookieValid = false;
+              account.cookie = undefined;
+              await account.save();
+            },
+          });
+
+          let data = await instaService.scanDMs(page!);
+          await instaService.dispose();
+          console.log("account :", account._id);
+
+          let finalData = Object.keys(data).map((d) => ({
+            updateOne: {
+              filter: { dmLink: data[d]["link"] }, // Efficient query using indexed dmlink
+              update: {
+                $set: {
+                  dmLink: data[d]["link"],
+                  accountId: account._id,
+                },
+              }, // Update the document with new data
+              upsert: true, // Insert if the document doesn't exist
+              strict: false,
+            },
+          }));
+
+          let d = await chatAccountModel.bulkWrite(finalData);
+          console.log("done :", account.userId);
+        } catch (error) {
+          console.log("error :", account.userId, error);
+        }
+      });
+
+      await Promise.all([...promise]);
+    }
+    // console.log("log :", d);
+  } catch (error) {
+    console.log("error :", error);
+  }
+});
+
 scanRouter.get("/scan-dm-db", async (req: Request, res: Response) => {
   res.send("started");
   //   66e92a56b2edd4862ce157a2

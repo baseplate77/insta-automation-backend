@@ -113,9 +113,9 @@ app.get("/test-scan-dm", async (req: Request, res: Response) => {
         );
         console.log("links :", links);
 
-        let data = await instaServive.sendDMAndFetchData(links.reverse());
+        // let data = await instaServive.sendDMAndFetchData(links.reverse());
 
-        console.log("data :", data);
+        // console.log("data :", data);
 
         await instaServive.dispose();
 
