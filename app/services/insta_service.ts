@@ -611,7 +611,7 @@ class InstaService {
       });
 
       await page.goto("https://www.instagram.com/direct/inbox/", {
-        timeout: 0,
+        timeout: 90_000,
       });
 
       // await delay(2000);
@@ -623,7 +623,7 @@ class InstaService {
 
       if (url.includes("challenge/")) {
         await page.waitForSelector("form > div > div:nth-child(2)", {
-          timeout: 120_000,
+          timeout: 90_000,
         });
 
         let thatWasMeBtn = await page.$("form > div > div:nth-child(2)");
