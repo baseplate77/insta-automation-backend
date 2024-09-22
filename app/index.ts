@@ -19,6 +19,7 @@ import scanRouter from "./router/scan";
 import { dmAccounts, fetchAccounts, testAccounts } from "./utils/accounts";
 import accountRouter from "./router/accounts";
 import cors from "cors";
+import messageTemplateRouter from "./router/message-template";
 dbService.connect();
 
 const app: Express = express();
@@ -44,6 +45,7 @@ app.use(cors());
 // dbTest();
 
 app.use(accountRouter);
+app.use(messageTemplateRouter);
 app.use(loginRouter);
 app.use(scanRouter);
 
