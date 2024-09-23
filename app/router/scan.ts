@@ -3,6 +3,7 @@ import InstaService from "../services/insta_service";
 import { accountModel } from "../db/schema/account.schema";
 import { decrypt } from "../utils/encrypt";
 import { chatAccountModel } from "../db/schema/chatAccount.schema";
+import { error } from "console";
 
 const scanRouter = express.Router();
 
@@ -139,7 +140,57 @@ scanRouter.get("/get-all-links", async (req: Request, res: Response) => {
   res.send(links);
 });
 
-scanRouter.get("/full-scan-send-dm", async (req: Request, res: Response) => {
+scanRouter.get("/full-scan-accounts", async (req: Request, res: Response) => {
+  res.send("started");
+  try {
+    let accounts = await accountModel.find(
+      { isCookieValid: true },
+      { userId: 1, password: 1, cookie: 1, isCookieValid: 1 }
+    );
+    let batchSize = 2;
+    for (let i = 0; i < accounts.length; i += batchSize) {
+      const batch = accounts.slice(i, i + batchSize);
+
+      let promise = batch.map(async (account) => {
+        let links = await chatAccountModel.find(
+          { accountId: account._id },
+          { dmLink: 1 }
+        );
+
+        let instaService = new InstaService();
+        let decryptPassword = decrypt(account.password!);
+        await instaService.init(account.userId!, decryptPassword!);
+        let page = await instaService.dblogIn({
+          cookieLogin: true,
+          cookie: account.cookie !== undefined ? account.cookie : "",
+          setCookie: async (cookie: any) => {
+            account.cookie = cookie;
+            account.isCookieValid = true;
+            await account.save();
+          },
+          onFail: async () => {
+            account.isCookieValid = false;
+            account.cookie = undefined;
+            await account.save();
+          },
+        });
+
+        let data: string[] = links.map((d) => d.dmLink!);
+        let finalData = await instaService.dbSendDMAndFetchData({
+          links: data,
+          sendMessage: false,
+        });
+        console.log("scan complete for :", account.userId);
+      });
+
+      await Promise.all([...promise]);
+    }
+  } catch (erro) {
+    console.log("error in full scan accounts :", error);
+  }
+});
+
+scanRouter.get("/scan-account", async (req: Request, res: Response) => {
   let { accountId } = req.query;
   res.send("ok");
   try {
@@ -153,7 +204,9 @@ scanRouter.get("/full-scan-send-dm", async (req: Request, res: Response) => {
     if (links === null || links.length === 0) throw "unable to get the links";
 
     let instaService = new InstaService();
-    await instaService.init(account.userId!, account.password!);
+
+    let decryptPassword = decrypt(account.password!);
+    await instaService.init(account.userId!, decryptPassword!);
     let page = await instaService.dblogIn({
       cookieLogin: true,
       cookie: account.cookie !== undefined ? account.cookie : "",

@@ -62,6 +62,24 @@ app.get("/", async (req: Request, res: Response) => {
   res.send("ok");
 });
 
+app.get("/test", async (req: Request, res: Response) => {
+  const accounts = await accountModel.find({}, { userId: 1 });
+  let total = 0;
+  let data = [];
+
+  for (let index = 0; index < accounts.length; index++) {
+    const account = accounts[index];
+
+    let count = await chatAccountModel.countDocuments({
+      accountId: account._id,
+    });
+    total += count;
+    data.push({ count, userID: account.userId });
+  }
+
+  res.send({ total, data });
+});
+
 app.get("/test-login", async (req: Request, res: Response) => {
   res.send("started");
 
