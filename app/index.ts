@@ -84,31 +84,31 @@ app.get("/", async (req: Request, res: Response) => {
       try {
         inbox.forEach((thread) => {
           thread.users.forEach(async (user) => {
-            try {
-              // const userProfile = await ig.user.searchExact(user.username);
-              // let l = await ig.location.info(user.pk);
-              // console.log(
-              //   "location :",
-              //   JSON.stringify(l.location),
-              //   l.status,
-              //   user.username
-              // );
-              // const response = await ig.request.send({
-              //   url: `/api/v1/users/${user.pk}/about_this_account/`,
-              //   method: "GET",
-              // });
-              // const countryName = response.body.account_country || "Unknown";
-              // console.log("country Name :", countryName);
+            // try {
+            //   // const userProfile = await ig.user.searchExact(user.username);
+            //   // let l = await ig.location.info(user.pk);
+            //   // console.log(
+            //   //   "location :",
+            //   //   JSON.stringify(l.location),
+            //   //   l.status,
+            //   //   user.username
+            //   // );
+            //   // const response = await ig.request.send({
+            //   //   url: `/api/v1/users/${user.pk}/about_this_account/`,
+            //   //   method: "GET",
+            //   // });
+            //   // const countryName = response.body.account_country || "Unknown";
+            //   // console.log("country Name :", countryName);
 
-              // get complete user info
-              let userProfile = await ig.user.info(user.pk);
-              console.log("user :", user.username, JSON.stringify(userProfile));
+            //   // get complete user info
+            //   let userProfile = await ig.user.info(user.pk);
+            //   console.log("user :", user.username, JSON.stringify(userProfile));
 
-              console.log("********************");
-              // console.log("userProfile :", JSON.stringify(userProfile));
-            } catch (error) {
-              console.log("error :", error);
-            }
+            //   console.log("********************");
+            //   // console.log("userProfile :", JSON.stringify(userProfile));
+            // } catch (error) {
+            //   console.log("error :", error);
+            // }
 
             console.log(
               `User: ${user.username}, Full Name: ${user.full_name} `,

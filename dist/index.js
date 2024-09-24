@@ -87,30 +87,29 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 inbox.forEach((thread) => {
                     thread.users.forEach((user) => __awaiter(void 0, void 0, void 0, function* () {
-                        try {
-                            // const userProfile = await ig.user.searchExact(user.username);
-                            // let l = await ig.location.info(user.pk);
-                            // console.log(
-                            //   "location :",
-                            //   JSON.stringify(l.location),
-                            //   l.status,
-                            //   user.username
-                            // );
-                            // const response = await ig.request.send({
-                            //   url: `/api/v1/users/${user.pk}/about_this_account/`,
-                            //   method: "GET",
-                            // });
-                            // const countryName = response.body.account_country || "Unknown";
-                            // console.log("country Name :", countryName);
-                            // get complete user info
-                            let userProfile = yield ig.user.info(user.pk);
-                            console.log("user :", user.username, JSON.stringify(userProfile));
-                            console.log("********************");
-                            // console.log("userProfile :", JSON.stringify(userProfile));
-                        }
-                        catch (error) {
-                            console.log("error :", error);
-                        }
+                        // try {
+                        //   // const userProfile = await ig.user.searchExact(user.username);
+                        //   // let l = await ig.location.info(user.pk);
+                        //   // console.log(
+                        //   //   "location :",
+                        //   //   JSON.stringify(l.location),
+                        //   //   l.status,
+                        //   //   user.username
+                        //   // );
+                        //   // const response = await ig.request.send({
+                        //   //   url: `/api/v1/users/${user.pk}/about_this_account/`,
+                        //   //   method: "GET",
+                        //   // });
+                        //   // const countryName = response.body.account_country || "Unknown";
+                        //   // console.log("country Name :", countryName);
+                        //   // get complete user info
+                        //   let userProfile = await ig.user.info(user.pk);
+                        //   console.log("user :", user.username, JSON.stringify(userProfile));
+                        //   console.log("********************");
+                        //   // console.log("userProfile :", JSON.stringify(userProfile));
+                        // } catch (error) {
+                        //   console.log("error :", error);
+                        // }
                         console.log(`User: ${user.username}, Full Name: ${user.full_name} `, JSON.stringify(thread.last_activity_at), JSON.stringify(thread.last_seen_at)
                         // `${thread.thread_id}`
                         );
