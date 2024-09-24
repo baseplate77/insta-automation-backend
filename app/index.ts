@@ -50,7 +50,7 @@ app.use(messageTemplateRouter);
 app.use(loginRouter);
 app.use(scanRouter);
 
-app.get("/", async (req: Request, res: Response) => {
+app.get("/private-api", async (req: Request, res: Response) => {
   let dmList: any[] = [];
   try {
     const ig = new IgApiClient();
@@ -81,41 +81,45 @@ app.get("/", async (req: Request, res: Response) => {
     let inboxFeed = ig.feed.directInbox();
     let inbox;
     let thereIsMore = false;
-    do {
-      inbox = await inboxFeed.items();
-      try {
-        inbox.forEach((thread) => {
-          thread.users.forEach(async (user) => {
-            // try {
-            //   // get complete user info
-            //   let userProfile = await ig.user.info(user.pk);
-            //   console.log("user :", user.username, JSON.stringify(userProfile));
 
-            //   console.log("********************");
-            //   // console.log("userProfile :", JSON.stringify(userProfile));
-            // } catch (error) {
-            //   console.log("error :", error);
-            // }
-            dmList.push(user);
-            console.log(
-              `User: ${user.username}, Full Name: ${user.full_name} `,
-              JSON.stringify(thread.last_activity_at),
-              JSON.stringify(thread.last_seen_at)
-              // `${thread.thread_id}`
-            );
-          });
-        });
+    let f = await ig.user.info("111695513561042");
+    console.log("details :", f);
 
-        thereIsMore = inboxFeed.isMoreAvailable();
-        await delay(2000);
-      } catch (error) {
-        console.log("error :", error);
+    // do {
+    //   inbox = await inboxFeed.items();
+    //   try {
+    //     inbox.forEach((thread) => {
+    //       thread.users.forEach(async (user) => {
+    //         // try {
+    //         //   // get complete user info
+    //         //   let userProfile = await ig.user.info(user.pk);
+    //         //   console.log("user :", user.username, JSON.stringify(userProfile));
 
-        thereIsMore = false;
-      }
+    //         //   console.log("********************");
+    //         //   // console.log("userProfile :", JSON.stringify(userProfile));
+    //         // } catch (error) {
+    //         //   console.log("error :", error);
+    //         // }
+    //         dmList.push(user);
+    //         console.log(
+    //           `User: ${user.username}, Full Name: ${user.full_name} `,
+    //           JSON.stringify(thread.last_activity_at),
+    //           JSON.stringify(thread.last_seen_at)
+    //           // `${thread.thread_id}`
+    //         );
+    //       });
+    //     });
 
-      console.log("count :", dmList.length);
-    } while (thereIsMore);
+    //     thereIsMore = inboxFeed.isMoreAvailable();
+    //     await delay(2000);
+    //   } catch (error) {
+    //     console.log("error :", error);
+
+    //     thereIsMore = false;
+    //   }
+
+    //   console.log("count :", dmList.length);
+    // } while (thereIsMore);
 
     res.send({ ok: "l", dmList });
   } catch (error) {
