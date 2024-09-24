@@ -101,10 +101,10 @@ app.get("/private-api", async (req: Request, res: Response) => {
               // get complete user info
               let userProfile = await ig.user.info(user.pk);
               console.log("user fetch,", user.username);
-              await delay(1000);
+              await delay(3000);
               // console.log("userProfile :", JSON.stringify(userProfile));
             } catch (error) {
-              console.log("error :", user.username);
+              console.log("error :", error);
             }
             dmList.push(user);
             console.log(
