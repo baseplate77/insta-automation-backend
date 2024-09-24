@@ -107,6 +107,7 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             catch (error) {
                 console.log("error :", error);
             }
+            console.log("count :", dmList.length);
         } while (inboxFeed.isMoreAvailable());
         res.send({ ok: "l", dmList });
     }

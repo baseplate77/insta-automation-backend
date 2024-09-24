@@ -108,6 +108,8 @@ app.get("/", async (req: Request, res: Response) => {
       } catch (error) {
         console.log("error :", error);
       }
+
+      console.log("count :", dmList.length);
     } while (inboxFeed.isMoreAvailable());
 
     res.send({ ok: "l", dmList });
