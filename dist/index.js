@@ -96,12 +96,12 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                             //   l.status,
                             //   user.username
                             // );
-                            const response = yield ig.request.send({
-                                url: `/api/v1/users/${user.pk}/about_this_account/`,
-                                method: "GET",
-                            });
-                            const countryName = response.body.account_country || "Unknown";
-                            console.log("country Name :", countryName);
+                            // const response = await ig.request.send({
+                            //   url: `/api/v1/users/${user.pk}/about_this_account/`,
+                            //   method: "GET",
+                            // });
+                            // const countryName = response.body.account_country || "Unknown";
+                            // console.log("country Name :", countryName);
                             // get complete user info
                             let userProfile = yield ig.user.info(user.pk);
                             console.log("user :", user.username, JSON.stringify(userProfile));
@@ -111,12 +111,9 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         catch (error) {
                             console.log("error :", error);
                         }
-                        // console.log(
-                        //   `User: ${user.username}, Full Name: ${user.full_name} `
-                        //   // JSON.stringify(thread.last_activity_at),
-                        //   // JSON.stringify(thread.last_seen_at),
-                        //   // `${thread.thread_id}`
-                        // );
+                        console.log(`User: ${user.username}, Full Name: ${user.full_name} `, JSON.stringify(thread.last_activity_at), JSON.stringify(thread.last_seen_at)
+                        // `${thread.thread_id}`
+                        );
                     }));
                 });
             }

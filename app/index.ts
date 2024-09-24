@@ -93,12 +93,12 @@ app.get("/", async (req: Request, res: Response) => {
               //   l.status,
               //   user.username
               // );
-              const response = await ig.request.send({
-                url: `/api/v1/users/${user.pk}/about_this_account/`,
-                method: "GET",
-              });
-              const countryName = response.body.account_country || "Unknown";
-              console.log("country Name :", countryName);
+              // const response = await ig.request.send({
+              //   url: `/api/v1/users/${user.pk}/about_this_account/`,
+              //   method: "GET",
+              // });
+              // const countryName = response.body.account_country || "Unknown";
+              // console.log("country Name :", countryName);
 
               // get complete user info
               let userProfile = await ig.user.info(user.pk);
@@ -110,12 +110,12 @@ app.get("/", async (req: Request, res: Response) => {
               console.log("error :", error);
             }
 
-            // console.log(
-            //   `User: ${user.username}, Full Name: ${user.full_name} `
-            //   // JSON.stringify(thread.last_activity_at),
-            //   // JSON.stringify(thread.last_seen_at),
-            //   // `${thread.thread_id}`
-            // );
+            console.log(
+              `User: ${user.username}, Full Name: ${user.full_name} `,
+              JSON.stringify(thread.last_activity_at),
+              JSON.stringify(thread.last_seen_at)
+              // `${thread.thread_id}`
+            );
           });
         });
       } catch (error) {
