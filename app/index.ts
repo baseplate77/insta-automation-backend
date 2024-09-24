@@ -56,18 +56,18 @@ app.get("/private-api", async (req: Request, res: Response) => {
     const ig = new IgApiClient();
     ig.state.generateDevice("ammy_forst");
 
-    await ig.simulate.preLoginFlow();
-    console.log("pre login");
-    const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
-    console.log("login complete ;", loggedInUser.pk);
-    process.nextTick(async () => await ig.simulate.postLoginFlow());
-    console.log("post login flow");
-    const session = await ig.state.serialize(); // This returns an object with cookies and other session-related info
-    delete session.constants; // Remove unnecessary data
-    fs.writeFileSync("./session.json", JSON.stringify(session));
+    // await ig.simulate.preLoginFlow();
+    // console.log("pre login");
+    // const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
+    // console.log("login complete ;", loggedInUser.pk);
+    // process.nextTick(async () => await ig.simulate.postLoginFlow());
+    // console.log("post login flow");
+    // const session = await ig.state.serialize(); // This returns an object with cookies and other session-related info
+    // delete session.constants; // Remove unnecessary data
+    // fs.writeFileSync("./session.json", JSON.stringify(session));
 
-    // const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
-    // await ig.state.deserialize(session);
+    const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
+    await ig.state.deserialize(session);
 
     // inbox.forEach((thread) => {
     //   console.log(`Thread ID: ${thread.thread_id}`);
@@ -97,16 +97,15 @@ app.get("/private-api", async (req: Request, res: Response) => {
       try {
         inbox.forEach((thread) => {
           thread.users.forEach(async (user) => {
-            // try {
-            //   // get complete user info
-            //   let userProfile = await ig.user.info(user.pk);
-            //   console.log("user :", user.username, JSON.stringify(userProfile));
-
-            //   console.log("********************");
-            //   // console.log("userProfile :", JSON.stringify(userProfile));
-            // } catch (error) {
-            //   console.log("error :", error);
-            // }
+            try {
+              // get complete user info
+              let userProfile = await ig.user.info(user.pk);
+              console.log("user fetch,", user.username);
+              await delay(1000);
+              // console.log("userProfile :", JSON.stringify(userProfile));
+            } catch (error) {
+              console.log("error :", user.username);
+            }
             dmList.push(user);
             console.log(
               `User: ${user.username}, Full Name: ${user.full_name} `,

@@ -97,15 +97,16 @@ app.get("/private-api", (req, res) => __awaiter(void 0, void 0, void 0, function
             try {
                 inbox.forEach((thread) => {
                     thread.users.forEach((user) => __awaiter(void 0, void 0, void 0, function* () {
-                        // try {
-                        //   // get complete user info
-                        //   let userProfile = await ig.user.info(user.pk);
-                        //   console.log("user :", user.username, JSON.stringify(userProfile));
-                        //   console.log("********************");
-                        //   // console.log("userProfile :", JSON.stringify(userProfile));
-                        // } catch (error) {
-                        //   console.log("error :", error);
-                        // }
+                        try {
+                            // get complete user info
+                            let userProfile = yield ig.user.info(user.pk);
+                            console.log("user fetch,", user.username);
+                            yield (0, delay_1.default)(1000);
+                            // console.log("userProfile :", JSON.stringify(userProfile));
+                        }
+                        catch (error) {
+                            console.log("error :", user.username);
+                        }
                         dmList.push(user);
                         console.log(`User: ${user.username}, Full Name: ${user.full_name} `, JSON.stringify(thread.last_activity_at), JSON.stringify(thread.last_seen_at)
                         // `${thread.thread_id}`
