@@ -83,6 +83,7 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // console.log("more :", inboxFeed.isMoreAvailable());
         let inboxFeed = ig.feed.directInbox();
         let inbox;
+        let thereIsMore = false;
         do {
             inbox = yield inboxFeed.items();
             try {
@@ -103,12 +104,15 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         );
                     }));
                 });
+                thereIsMore = inboxFeed.isMoreAvailable();
+                yield (0, delay_1.default)(2000);
             }
             catch (error) {
                 console.log("error :", error);
+                thereIsMore = false;
             }
             console.log("count :", dmList.length);
-        } while (inboxFeed.isMoreAvailable());
+        } while (thereIsMore);
         res.send({ ok: "l", dmList });
     }
     catch (error) {

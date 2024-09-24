@@ -80,7 +80,7 @@ app.get("/", async (req: Request, res: Response) => {
     // console.log("more :", inboxFeed.isMoreAvailable());
     let inboxFeed = ig.feed.directInbox();
     let inbox;
-
+    let thereIsMore = false;
     do {
       inbox = await inboxFeed.items();
       try {
@@ -105,12 +105,17 @@ app.get("/", async (req: Request, res: Response) => {
             );
           });
         });
+
+        thereIsMore = inboxFeed.isMoreAvailable();
+        await delay(2000);
       } catch (error) {
         console.log("error :", error);
+
+        thereIsMore = false;
       }
 
       console.log("count :", dmList.length);
-    } while (inboxFeed.isMoreAvailable());
+    } while (thereIsMore);
 
     res.send({ ok: "l", dmList });
   } catch (error) {
