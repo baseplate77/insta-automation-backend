@@ -57,6 +57,7 @@ app.use(message_template_1.default);
 app.use(login_1.default);
 app.use(scan_1.default);
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let dmList = [];
     try {
         const ig = new instagram_private_api_1.IgApiClient();
         ig.state.generateDevice("ammy_forst");
@@ -88,20 +89,6 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 inbox.forEach((thread) => {
                     thread.users.forEach((user) => __awaiter(void 0, void 0, void 0, function* () {
                         // try {
-                        //   // const userProfile = await ig.user.searchExact(user.username);
-                        //   // let l = await ig.location.info(user.pk);
-                        //   // console.log(
-                        //   //   "location :",
-                        //   //   JSON.stringify(l.location),
-                        //   //   l.status,
-                        //   //   user.username
-                        //   // );
-                        //   // const response = await ig.request.send({
-                        //   //   url: `/api/v1/users/${user.pk}/about_this_account/`,
-                        //   //   method: "GET",
-                        //   // });
-                        //   // const countryName = response.body.account_country || "Unknown";
-                        //   // console.log("country Name :", countryName);
                         //   // get complete user info
                         //   let userProfile = await ig.user.info(user.pk);
                         //   console.log("user :", user.username, JSON.stringify(userProfile));
@@ -110,6 +97,7 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         // } catch (error) {
                         //   console.log("error :", error);
                         // }
+                        dmList.push(user);
                         console.log(`User: ${user.username}, Full Name: ${user.full_name} `, JSON.stringify(thread.last_activity_at), JSON.stringify(thread.last_seen_at)
                         // `${thread.thread_id}`
                         );
@@ -120,10 +108,11 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 console.log("error :", error);
             }
         } while (inboxFeed.isMoreAvailable());
-        res.send({ ok: "l" });
+        res.send({ ok: "l", dmList });
     }
     catch (error) {
         console.log("found error :", error);
+        res.send({ error: true, dmList });
     }
 }));
 app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
