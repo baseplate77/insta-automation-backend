@@ -61,17 +61,17 @@ app.get("/private-api", (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         const ig = new instagram_private_api_1.IgApiClient();
         ig.state.generateDevice("ammy_forst");
-        // await ig.simulate.preLoginFlow();
-        // console.log("pre login");
-        // const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
-        // console.log("login complete ;", loggedInUser.pk);
-        // process.nextTick(async () => await ig.simulate.postLoginFlow());
-        // console.log("post login flow");
-        // const session = await ig.state.serialize(); // This returns an object with cookies and other session-related info
-        // delete session.constants; // Remove unnecessary data
-        // fs.writeFileSync("./session.json", JSON.stringify(session));
-        const session = JSON.parse(fs_1.default.readFileSync("./session.json", "utf-8"));
-        yield ig.state.deserialize(session);
+        yield ig.simulate.preLoginFlow();
+        console.log("pre login");
+        const loggedInUser = yield ig.account.login("ammy_forst", "maxie@123");
+        console.log("login complete ;", loggedInUser.pk);
+        process.nextTick(() => __awaiter(void 0, void 0, void 0, function* () { return yield ig.simulate.postLoginFlow(); }));
+        console.log("post login flow");
+        const session = yield ig.state.serialize(); // This returns an object with cookies and other session-related info
+        delete session.constants; // Remove unnecessary data
+        fs_1.default.writeFileSync("./session.json", JSON.stringify(session));
+        // const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
+        // await ig.state.deserialize(session);
         // inbox.forEach((thread) => {
         //   console.log(`Thread ID: ${thread.thread_id}`);
         //   thread.users.forEach((user) => {
@@ -81,9 +81,14 @@ app.get("/private-api", (req, res) => __awaiter(void 0, void 0, void 0, function
         //   });
         // });
         // console.log("more :", inboxFeed.isMoreAvailable());
-        let inboxFeed = ig.feed.directInbox();
+        let inboxFeed;
         let inbox;
         let thereIsMore = false;
+        let hasRun = false;
+        if (!hasRun) {
+            inboxFeed = ig.feed.directInbox();
+            hasRun = true;
+        }
         // if (lastCursor) {
         //   inboxFeed.state. = lastCursor;
         // }
@@ -115,7 +120,7 @@ app.get("/private-api", (req, res) => __awaiter(void 0, void 0, void 0, function
                 thereIsMore = false;
             }
             console.log("count :", dmList.length);
-            yield (0, delay_1.default)(2000);
+            yield (0, delay_1.default)(5000);
         } while (thereIsMore);
         res.send({ ok: "l", dmList });
     }

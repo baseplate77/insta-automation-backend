@@ -56,18 +56,18 @@ app.get("/private-api", async (req: Request, res: Response) => {
     const ig = new IgApiClient();
     ig.state.generateDevice("ammy_forst");
 
-    // await ig.simulate.preLoginFlow();
-    // console.log("pre login");
-    // const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
-    // console.log("login complete ;", loggedInUser.pk);
-    // process.nextTick(async () => await ig.simulate.postLoginFlow());
-    // console.log("post login flow");
-    // const session = await ig.state.serialize(); // This returns an object with cookies and other session-related info
-    // delete session.constants; // Remove unnecessary data
-    // fs.writeFileSync("./session.json", JSON.stringify(session));
+    await ig.simulate.preLoginFlow();
+    console.log("pre login");
+    const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
+    console.log("login complete ;", loggedInUser.pk);
+    process.nextTick(async () => await ig.simulate.postLoginFlow());
+    console.log("post login flow");
+    const session = await ig.state.serialize(); // This returns an object with cookies and other session-related info
+    delete session.constants; // Remove unnecessary data
+    fs.writeFileSync("./session.json", JSON.stringify(session));
 
-    const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
-    await ig.state.deserialize(session);
+    // const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
+    // await ig.state.deserialize(session);
 
     // inbox.forEach((thread) => {
     //   console.log(`Thread ID: ${thread.thread_id}`);
@@ -79,14 +79,21 @@ app.get("/private-api", async (req: Request, res: Response) => {
     // });
     // console.log("more :", inboxFeed.isMoreAvailable());
 
-    let inboxFeed = ig.feed.directInbox();
+    let inboxFeed;
     let inbox;
     let thereIsMore = false;
+
+    let hasRun = false;
+
+    if (!hasRun) {
+      inboxFeed = ig.feed.directInbox();
+      hasRun = true;
+    }
     // if (lastCursor) {
     //   inboxFeed.state. = lastCursor;
     // }
     do {
-      inbox = await inboxFeed.items();
+      inbox = await inboxFeed!.items();
       try {
         inbox.forEach((thread) => {
           thread.users.forEach(async (user) => {
@@ -110,7 +117,7 @@ app.get("/private-api", async (req: Request, res: Response) => {
           });
         });
 
-        thereIsMore = inboxFeed.isMoreAvailable();
+        thereIsMore = inboxFeed!.isMoreAvailable();
         console.log("ismore :", thereIsMore);
       } catch (error) {
         console.log("error :", error);
@@ -119,7 +126,7 @@ app.get("/private-api", async (req: Request, res: Response) => {
       }
 
       console.log("count :", dmList.length);
-      await delay(2000);
+      await delay(5000);
     } while (thereIsMore);
 
     res.send({ ok: "l", dmList });
