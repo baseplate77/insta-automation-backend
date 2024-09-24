@@ -78,10 +78,13 @@ app.get("/private-api", async (req: Request, res: Response) => {
     //   });
     // });
     // console.log("more :", inboxFeed.isMoreAvailable());
+
     let inboxFeed = ig.feed.directInbox();
     let inbox;
     let thereIsMore = false;
-
+    // if (lastCursor) {
+    //   inboxFeed.state. = lastCursor;
+    // }
     do {
       inbox = await inboxFeed.items();
       try {
@@ -108,7 +111,7 @@ app.get("/private-api", async (req: Request, res: Response) => {
         });
 
         thereIsMore = inboxFeed.isMoreAvailable();
-        await delay(2000);
+        console.log("ismore :", thereIsMore);
       } catch (error) {
         console.log("error :", error);
 
@@ -116,6 +119,7 @@ app.get("/private-api", async (req: Request, res: Response) => {
       }
 
       console.log("count :", dmList.length);
+      await delay(2000);
     } while (thereIsMore);
 
     res.send({ ok: "l", dmList });
