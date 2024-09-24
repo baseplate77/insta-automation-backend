@@ -60,20 +60,17 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const ig = new instagram_private_api_1.IgApiClient();
         ig.state.generateDevice("ammy_forst");
-        yield ig.simulate.preLoginFlow();
-        console.log("pre login");
-        const loggedInUser = yield ig.account.login("ammy_forst", "maxie@123");
-        console.log("login complete ;", loggedInUser.pk);
-        process.nextTick(() => __awaiter(void 0, void 0, void 0, function* () { return yield ig.simulate.postLoginFlow(); }));
-        console.log("post login flow");
-        const session = yield ig.state.serialize(); // This returns an object with cookies and other session-related info
-        delete session.constants; // Remove unnecessary data
-        fs_1.default.writeFileSync("./session.json", JSON.stringify(session));
-        // // const userFeed = ig.feed.user(loggedInUser.pk);
-        // // const myPostsSecondPage = await userFeed.items();
-        // const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
-        // await ig.state.deserialize(session);
-        // let inbox = await inboxFeed.items();
+        // await ig.simulate.preLoginFlow();
+        // console.log("pre login");
+        // const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
+        // console.log("login complete ;", loggedInUser.pk);
+        // process.nextTick(async () => await ig.simulate.postLoginFlow());
+        // console.log("post login flow");
+        // const session = await ig.state.serialize(); // This returns an object with cookies and other session-related info
+        // delete session.constants; // Remove unnecessary data
+        // fs.writeFileSync("./session.json", JSON.stringify(session));
+        const session = JSON.parse(fs_1.default.readFileSync("./session.json", "utf-8"));
+        yield ig.state.deserialize(session);
         // inbox.forEach((thread) => {
         //   console.log(`Thread ID: ${thread.thread_id}`);
         //   thread.users.forEach((user) => {
@@ -99,15 +96,20 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                             //   l.status,
                             //   user.username
                             // );
+                            const response = yield ig.request.send({
+                                url: `/api/v1/users/${user.pk}/about_this_account/`,
+                                method: "GET",
+                            });
+                            const countryName = response.body.account_country || "Unknown";
+                            console.log("country Name :", countryName);
                             // get complete user info
-                            // let userProfile = await ig.user.info(user.pk);
-                            let userProfile = yield ig.user.accountDetails(user.pk);
+                            let userProfile = yield ig.user.info(user.pk);
                             console.log("user :", user.username, JSON.stringify(userProfile));
                             console.log("********************");
                             // console.log("userProfile :", JSON.stringify(userProfile));
                         }
                         catch (error) {
-                            console.log("error :", user.username);
+                            console.log("error :", error);
                         }
                         // console.log(
                         //   `User: ${user.username}, Full Name: ${user.full_name} `
