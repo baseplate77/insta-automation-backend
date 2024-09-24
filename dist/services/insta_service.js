@@ -502,7 +502,7 @@ class InstaService {
                     }
                 }));
                 yield page.goto("https://www.instagram.com/direct/inbox/", {
-                    timeout: 0,
+                    timeout: 90000,
                 });
                 // await delay(2000);
                 // await delay(2000);
@@ -512,7 +512,7 @@ class InstaService {
                 let cursor = (0, ghost_cursor_1.createCursor)(page);
                 if (url.includes("challenge/")) {
                     yield page.waitForSelector("form > div > div:nth-child(2)", {
-                        timeout: 120000,
+                        timeout: 90000,
                     });
                     let thatWasMeBtn = yield page.$("form > div > div:nth-child(2)");
                     if (thatWasMeBtn) {

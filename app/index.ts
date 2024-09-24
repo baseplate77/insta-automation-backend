@@ -20,6 +20,7 @@ import { dmAccounts, fetchAccounts, testAccounts } from "./utils/accounts";
 import accountRouter from "./router/accounts";
 import cors from "cors";
 import messageTemplateRouter from "./router/message-template";
+import { IgApiClient } from "instagram-private-api";
 dbService.connect();
 
 const app: Express = express();
@@ -50,16 +51,82 @@ app.use(loginRouter);
 app.use(scanRouter);
 
 app.get("/", async (req: Request, res: Response) => {
-  let testKey = "hello you";
+  try {
+    const ig = new IgApiClient();
+    ig.state.generateDevice("ammy_forst");
 
-  let encrpyt = encrypt(testKey);
-  console.log("emcrypt:", encrpyt);
+    // await ig.simulate.preLoginFlow();
+    // console.log("pre login");
+    // const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
+    // console.log("login complete ;", loggedInUser.pk);
+    // process.nextTick(async () => await ig.simulate.postLoginFlow());
+    // console.log("post login flow");
+    // const session = await ig.state.serialize(); // This returns an object with cookies and other session-related info
+    // delete session.constants; // Remove unnecessary data
+    // fs.writeFileSync("./session.json", JSON.stringify(session));
 
-  let decrpt = decrypt(encrpyt);
+    const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
+    await ig.state.deserialize(session);
 
-  console.log("decrpyt :", decrpt);
+    // inbox.forEach((thread) => {
+    //   console.log(`Thread ID: ${thread.thread_id}`);
+    //   thread.users.forEach((user) => {
+    //     console.log(
+    //       `User: ${user.username}, Full Name: ${user.full_name} ${thread.last_activity_at} ${thread.last_seen_at}`
+    //     );
+    //   });
+    // });
+    // console.log("more :", inboxFeed.isMoreAvailable());
+    let inboxFeed = ig.feed.directInbox();
+    let inbox;
+    do {
+      inbox = await inboxFeed.items();
+      try {
+        inbox.forEach((thread) => {
+          thread.users.forEach(async (user) => {
+            try {
+              // const userProfile = await ig.user.searchExact(user.username);
+              // let l = await ig.location.info(user.pk);
+              // console.log(
+              //   "location :",
+              //   JSON.stringify(l.location),
+              //   l.status,
+              //   user.username
+              // );
+              const response = await ig.request.send({
+                url: `/api/v1/users/${user.pk}/about_this_account/`,
+                method: "GET",
+              });
+              const countryName = response.body.account_country || "Unknown";
+              console.log("country Name :", countryName);
 
-  res.send("ok");
+              // get complete user info
+              let userProfile = await ig.user.info(user.pk);
+              console.log("user :", user.username, JSON.stringify(userProfile));
+
+              console.log("********************");
+              // console.log("userProfile :", JSON.stringify(userProfile));
+            } catch (error) {
+              console.log("error :", error);
+            }
+
+            // console.log(
+            //   `User: ${user.username}, Full Name: ${user.full_name} `
+            //   // JSON.stringify(thread.last_activity_at),
+            //   // JSON.stringify(thread.last_seen_at),
+            //   // `${thread.thread_id}`
+            // );
+          });
+        });
+      } catch (error) {
+        console.log("error :", error);
+      }
+    } while (inboxFeed.isMoreAvailable());
+
+    res.send({ ok: "l" });
+  } catch (error) {
+    console.log("found error :", error);
+  }
 });
 
 app.get("/test", async (req: Request, res: Response) => {

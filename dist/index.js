@@ -32,6 +32,8 @@ const scan_1 = __importDefault(require("./router/scan"));
 const accounts_1 = require("./utils/accounts");
 const accounts_2 = __importDefault(require("./router/accounts"));
 const cors_1 = __importDefault(require("cors"));
+const message_template_1 = __importDefault(require("./router/message-template"));
+const instagram_private_api_1 = require("instagram-private-api");
 db_service_1.default.connect();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
@@ -51,15 +53,94 @@ app.use((0, cors_1.default)());
 // };
 // dbTest();
 app.use(accounts_2.default);
+app.use(message_template_1.default);
 app.use(login_1.default);
 app.use(scan_1.default);
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let testKey = "hello you";
-    let encrpyt = (0, encrypt_1.encrypt)(testKey);
-    console.log("emcrypt:", encrpyt);
-    let decrpt = (0, encrypt_1.decrypt)(encrpyt);
-    console.log("decrpyt :", decrpt);
-    res.send("ok");
+    try {
+        const ig = new instagram_private_api_1.IgApiClient();
+        ig.state.generateDevice("ammy_forst");
+        yield ig.simulate.preLoginFlow();
+        console.log("pre login");
+        const loggedInUser = yield ig.account.login("ammy_forst", "maxie@123");
+        console.log("login complete ;", loggedInUser.pk);
+        process.nextTick(() => __awaiter(void 0, void 0, void 0, function* () { return yield ig.simulate.postLoginFlow(); }));
+        console.log("post login flow");
+        const session = yield ig.state.serialize(); // This returns an object with cookies and other session-related info
+        delete session.constants; // Remove unnecessary data
+        fs_1.default.writeFileSync("./session.json", JSON.stringify(session));
+        // // const userFeed = ig.feed.user(loggedInUser.pk);
+        // // const myPostsSecondPage = await userFeed.items();
+        // const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
+        // await ig.state.deserialize(session);
+        // let inbox = await inboxFeed.items();
+        // inbox.forEach((thread) => {
+        //   console.log(`Thread ID: ${thread.thread_id}`);
+        //   thread.users.forEach((user) => {
+        //     console.log(
+        //       `User: ${user.username}, Full Name: ${user.full_name} ${thread.last_activity_at} ${thread.last_seen_at}`
+        //     );
+        //   });
+        // });
+        // console.log("more :", inboxFeed.isMoreAvailable());
+        let inboxFeed = ig.feed.directInbox();
+        let inbox;
+        do {
+            inbox = yield inboxFeed.items();
+            try {
+                inbox.forEach((thread) => {
+                    thread.users.forEach((user) => __awaiter(void 0, void 0, void 0, function* () {
+                        try {
+                            // const userProfile = await ig.user.searchExact(user.username);
+                            // let l = await ig.location.info(user.pk);
+                            // console.log(
+                            //   "location :",
+                            //   JSON.stringify(l.location),
+                            //   l.status,
+                            //   user.username
+                            // );
+                            // get complete user info
+                            // let userProfile = await ig.user.info(user.pk);
+                            let userProfile = yield ig.user.accountDetails(user.pk);
+                            console.log("user :", user.username, JSON.stringify(userProfile));
+                            console.log("********************");
+                            // console.log("userProfile :", JSON.stringify(userProfile));
+                        }
+                        catch (error) {
+                            console.log("error :", user.username);
+                        }
+                        // console.log(
+                        //   `User: ${user.username}, Full Name: ${user.full_name} `
+                        //   // JSON.stringify(thread.last_activity_at),
+                        //   // JSON.stringify(thread.last_seen_at),
+                        //   // `${thread.thread_id}`
+                        // );
+                    }));
+                });
+            }
+            catch (error) {
+                console.log("error :", error);
+            }
+        } while (inboxFeed.isMoreAvailable());
+        res.send({ ok: "l" });
+    }
+    catch (error) {
+        console.log("found error :", error);
+    }
+}));
+app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const accounts = yield account_schema_1.accountModel.find({}, { userId: 1 });
+    let total = 0;
+    let data = [];
+    for (let index = 0; index < accounts.length; index++) {
+        const account = accounts[index];
+        let count = yield chatAccount_schema_1.chatAccountModel.countDocuments({
+            accountId: account._id,
+        });
+        total += count;
+        data.push({ count, userID: account.userId });
+    }
+    res.send({ total, data });
 }));
 app.get("/test-login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send("started");
@@ -100,8 +181,8 @@ app.get("/test-scan-dm", (req, res) => __awaiter(void 0, void 0, void 0, functio
                 let details = Object.keys(finaldata).map((dmData) => finaldata[dmData]);
                 let links = Object.keys(finaldata).map((dmData) => finaldata[dmData]["link"]);
                 console.log("links :", links);
-                let data = yield instaServive.sendDMAndFetchData(links.reverse());
-                console.log("data :", data);
+                // let data = await instaServive.sendDMAndFetchData(links.reverse());
+                // console.log("data :", data);
                 yield instaServive.dispose();
                 const wb = xlsx_1.default.utils.book_new();
                 const ws = xlsx_1.default.utils.json_to_sheet(details);
