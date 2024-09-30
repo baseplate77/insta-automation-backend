@@ -214,15 +214,21 @@ async function handleTwoFactorAuth(ig: IgApiClient, error: any) {
 
 app.get("/private-login", async (req: Request, res: Response) => {
   const ig = new IgApiClient();
+
+  let { userId } = req.query as any;
   try {
-    ig.state.generateDevice("mccray_shih017");
+    ig.state.generateDevice(userId);
 
     await ig.simulate.preLoginFlow();
     console.log("pre login");
-    const loggedInUser = await ig.account.login(
-      "mccray_shih017",
-      "alfaalfa234"
+
+    let account = await accountModel.findOne(
+      { userId: userId },
+      { password: 1 }
     );
+
+    let password = decrypt(account?.password!);
+    const loggedInUser = await ig.account.login(userId, password);
     console.log("login complete ;", loggedInUser.pk);
     process.nextTick(async () => await ig.simulate.postLoginFlow());
     console.log("post login flow");
