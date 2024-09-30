@@ -228,6 +228,8 @@ app.get("/private-login", async (req: Request, res: Response) => {
     );
 
     let password = decrypt(account?.password!);
+    console.log("password :", password);
+
     const loggedInUser = await ig.account.login(userId, password);
     console.log("login complete ;", loggedInUser.pk);
     process.nextTick(async () => await ig.simulate.postLoginFlow());
