@@ -137,8 +137,8 @@ class GlobalBroswer {
 
       protocolTimeout: 0,
       timeout: 0,
-      headless: true,
-      // headless: false,
+      // headless: true,
+      headless: false,
 
       args: [
         "--disable-gpu",
@@ -151,8 +151,8 @@ class GlobalBroswer {
         "--disable-site-isolation-trials",
         "--disable-blink-features=AutomationControlled",
 
-        // `--proxy-server=${randomProxy}`,
-
+        // `--proxy-server=206.189.135.6:3128`,
+        // "--ignore-certificate-errors",
         // "--disable-gpu",
         // "--disable-dev-shm-usage",
         // "--disable-setuid-sandbox",

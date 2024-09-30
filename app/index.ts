@@ -20,11 +20,21 @@ import { dmAccounts, fetchAccounts, testAccounts } from "./utils/accounts";
 import accountRouter from "./router/accounts";
 import cors from "cors";
 import messageTemplateRouter from "./router/message-template";
-import { IgApiClient } from "instagram-private-api";
+import {
+  IgApiClient,
+  IgCheckpointError,
+  IgLoginTwoFactorRequiredError,
+  IgResponseError,
+} from "instagram-private-api";
+import inquirer from "inquirer";
+import { globalBrowser } from "./utils/browerSetup";
+import { ThreadModel } from "./db/schema/thread.schema";
+import JobService from "./services/job_service";
+import jobRouter from "./router/jobs";
 dbService.connect();
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
+const port = process.argv[2] || process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -49,16 +59,170 @@ app.use(accountRouter);
 app.use(messageTemplateRouter);
 app.use(loginRouter);
 app.use(scanRouter);
+app.use(jobRouter);
 
-app.get("/private-api", async (req: Request, res: Response) => {
-  let dmList: any[] = [];
+app.get("/", async (req: Request, res: Response) => {
+  res.send("working on express server");
+});
+
+app.post("/add-test-job", async (req: Request, res: Response) => {
+  let { type, state } = req.body;
+
+  let jobServoce = new JobService();
+
+  let job = await jobServoce.addJob({ type, state });
+  res.send({ ...job });
+});
+
+app.get("/get-all-userid", async (req: Request, res: Response) => {
+  let userId = await accountModel.find({}, { userId: 1 });
+
+  let userMap = userId.map((i) => i["userId"]);
+
+  res.send(userMap);
+});
+
+app.get("/open-browser-proxy", async (req: Request, res: Response) => {
+  let browser = await globalBrowser.initBrower();
+
+  console.log("browser opened");
+
+  let page = await browser?.newPage();
+
+  // await page?.goto("https://whatismyipaddress.com/", { timeout: 0 });
+
+  // let context = await page?.content();
+});
+
+app.get("/get-user-profile-data", async (req: Request, res: Response) => {
   try {
     const ig = new IgApiClient();
-    ig.state.generateDevice("ammy_forst");
+    const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
+    await ig.state.deserialize(session);
+
+    let page = 1;
+    let limit = 20;
+    let loop = true;
+    let data = [];
+    while (loop) {
+      let skip = (page - 1) * limit;
+      let users = await ThreadModel.find({ userData: { $exists: false } })
+        .skip(skip)
+        .limit(limit);
+
+      for (let index = 0; index < users.length; index++) {
+        const user = users[index];
+        try {
+          // get complete user info
+
+          let userProfile = await ig.user.info(user.data.pk);
+          console.log("user fetch,", userProfile.username);
+          await ThreadModel.updateOne(
+            { userId: user.userId }, // Query to find the document by user_id
+            { $set: { userData: userProfile } } // Update the userData field with new value
+          );
+
+          console.log("user profile saved");
+
+          // console.log("userProfile :", JSON.stringify(userProfile));
+        } catch (error) {
+          if (
+            error instanceof IgResponseError &&
+            error.message.includes("feedback_required")
+          ) {
+            loop = false;
+
+            throw error;
+          }
+          console.log("error :", error);
+        }
+        const randomDelay = Math.floor(Math.random() * 3) + 2;
+
+        await delay(randomDelay * 1000);
+        data.push(user.userId);
+      }
+      console.log("page ", page);
+
+      if (users.length === 0) {
+        loop = false;
+      } else {
+        page++;
+      }
+    }
+
+    res.send(data);
+  } catch (error) {
+    console.log("error in getting user details", error);
+    res.send({ error });
+  }
+});
+
+async function handleChallenge(ig: IgApiClient, error: any) {
+  const { api } = error;
+  await ig.challenge.auto(true); // Requesting the challenge (true means automatic selection)
+
+  const challengeChoices = await inquirer.prompt([
+    {
+      type: "list",
+      name: "method",
+      message: "Select a challenge method:",
+      choices: [
+        { name: "Email", value: "1" },
+        { name: "Phone", value: "0" },
+      ],
+    },
+  ]);
+
+  // Submitting the selected challenge option (email or phone)
+  await ig.challenge.selectVerifyMethod(challengeChoices.method);
+
+  const codePrompt = await inquirer.prompt([
+    {
+      type: "input",
+      name: "code",
+      message: "Enter the verification code you received:",
+    },
+  ]);
+
+  // Submitting the verification code
+  await ig.challenge.sendSecurityCode(codePrompt.code);
+
+  console.log("Challenge handled successfully!");
+}
+
+async function handleTwoFactorAuth(ig: IgApiClient, error: any) {
+  const { username } = error;
+  const twoFactorPrompt = await inquirer.prompt([
+    {
+      type: "input",
+      name: "code",
+      message: "Enter the two-factor authentication code:",
+    },
+  ]);
+
+  await ig.account.twoFactorLogin({
+    username,
+    verificationCode: twoFactorPrompt.code,
+    twoFactorIdentifier:
+      error.response.body.two_factor_info.two_factor_identifier,
+    verificationMethod: "1", // Assuming 1 is SMS
+    trustThisDevice: "1",
+  });
+
+  console.log("Logged in with two-factor authentication successfully!");
+}
+
+app.get("/private-login", async (req: Request, res: Response) => {
+  const ig = new IgApiClient();
+  try {
+    ig.state.generateDevice("mccray_shih017");
 
     await ig.simulate.preLoginFlow();
     console.log("pre login");
-    const loggedInUser = await ig.account.login("ammy_forst", "maxie@123");
+    const loggedInUser = await ig.account.login(
+      "mccray_shih017",
+      "alfaalfa234"
+    );
     console.log("login complete ;", loggedInUser.pk);
     process.nextTick(async () => await ig.simulate.postLoginFlow());
     console.log("post login flow");
@@ -66,8 +230,29 @@ app.get("/private-api", async (req: Request, res: Response) => {
     delete session.constants; // Remove unnecessary data
     fs.writeFileSync("./session.json", JSON.stringify(session));
 
-    // const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
-    // await ig.state.deserialize(session);
+    res.send("login complete");
+  } catch (error: any) {
+    if (error instanceof IgCheckpointError) {
+      console.log("Challenge required. Handling challenge...");
+      await handleChallenge(ig, error);
+      res.send("challenge");
+    } else if (error instanceof IgLoginTwoFactorRequiredError) {
+      console.log("Two-factor authentication required.");
+      await handleTwoFactorAuth(ig, error);
+      res.send("2fa");
+    } else {
+      console.log("Error during login:", error.message);
+      res.send("error");
+    }
+  }
+});
+app.get("/private-thread-data", async (req: Request, res: Response) => {
+  let dmList: any[] = [];
+  try {
+    const ig = new IgApiClient();
+
+    const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
+    await ig.state.deserialize(session);
 
     // inbox.forEach((thread) => {
     //   console.log(`Thread ID: ${thread.thread_id}`);
@@ -87,6 +272,7 @@ app.get("/private-api", async (req: Request, res: Response) => {
 
     if (!hasRun) {
       inboxFeed = ig.feed.directInbox();
+
       hasRun = true;
     }
     // if (lastCursor) {
@@ -95,26 +281,83 @@ app.get("/private-api", async (req: Request, res: Response) => {
     do {
       inbox = await inboxFeed!.items();
       try {
-        inbox.forEach((thread) => {
-          thread.users.forEach(async (user) => {
-            try {
-              // get complete user info
-              let userProfile = await ig.user.info(user.pk);
-              console.log("user fetch,", user.username);
-              await delay(3000);
-              // console.log("userProfile :", JSON.stringify(userProfile));
-            } catch (error) {
-              console.log("error :", error);
-            }
+        for (let index = 0; index < inbox.length; index++) {
+          const thread = inbox[index];
+          for (let index = 0; index < thread.users.length; index++) {
+            const user = thread.users[index] as any;
+            // try {
+            //   // get complete user info
+
+            //   let userProfile = await ig.user.info(user.pk);
+            //   console.log("user fetch,", userProfile.full_name);
+
+            //   // console.log("userProfile :", JSON.stringify(userProfile));
+            // } catch (error) {
+            //   console.log("error :", error);
+            // }
+
             dmList.push(user);
+
+            if (dmList.length % 100 === 0) {
+              await delay(5000);
+            } else {
+              const randomDelay = Math.floor(Math.random() * 1) + 0;
+
+              await delay(randomDelay * 1000);
+            }
+
+            // let threadModel = await ThreadModel.create({
+            //   userId: user.username,
+            //   messageId: user["interop_messaging_user_fbid"],
+            //   data: user,
+            // });
+
+            // await threadModel.save();
+
+            // await ThreadModel.updateOne(
+            //   { userId: user.username },
+            //   {
+            //     $set: {
+            //       userId: user.username,
+            //       messageId: user["interop_messaging_user_fbid"],
+            //       data: user,
+            //     },
+            //   },
+            //   {
+            //     upsert: true,
+            //   }
+            // );
+            // console.log("save to db");
+
             console.log(
-              `User: ${user.username}, Full Name: ${user.full_name} `,
-              JSON.stringify(thread.last_activity_at),
-              JSON.stringify(thread.last_seen_at)
+              `User: ${user.username}, Full Name: ${user.full_name} ${user.pk} `,
+              user.last_activity_at,
+              user.last_seen_at
               // `${thread.thread_id}`
             );
-          });
-        });
+          }
+        }
+
+        // inbox.forEach(async (thread) => {
+        //   thread.users.forEach(async (user) => {
+        //     try {
+        //       // get complete user info
+        //       let userProfile = await ig.user.info(user.pk);
+        //       console.log("user fetch,", user.username);
+        //       await delay(3000);
+        //       // console.log("userProfile :", JSON.stringify(userProfile));
+        //     } catch (error) {
+        //       console.log("error :", error);
+        //     }
+        //     dmList.push(user);
+        //     console.log(
+        //       `User: ${user.username}, Full Name: ${user.full_name} `,
+        //       JSON.stringify(thread.last_activity_at),
+        //       JSON.stringify(thread.last_seen_at)
+        //       // `${thread.thread_id}`
+        //     );
+        //   });
+        // });
 
         thereIsMore = inboxFeed!.isMoreAvailable();
         console.log("ismore :", thereIsMore);
@@ -125,7 +368,7 @@ app.get("/private-api", async (req: Request, res: Response) => {
       }
 
       console.log("count :", dmList.length);
-      await delay(5000);
+      await delay(1000);
     } while (thereIsMore);
 
     res.send({ ok: "l", dmList });

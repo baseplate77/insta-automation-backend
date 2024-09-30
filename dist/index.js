@@ -34,9 +34,15 @@ const accounts_2 = __importDefault(require("./router/accounts"));
 const cors_1 = __importDefault(require("cors"));
 const message_template_1 = __importDefault(require("./router/message-template"));
 const instagram_private_api_1 = require("instagram-private-api");
+const inquirer_1 = __importDefault(require("inquirer"));
+const browerSetup_1 = require("./utils/browerSetup");
+const thread_schema_1 = require("./db/schema/thread.schema");
+const job_service_1 = __importDefault(require("./services/job_service"));
+const jobs_1 = __importDefault(require("./router/jobs"));
 db_service_1.default.connect();
 const app = (0, express_1.default)();
-const port = process.env.PORT || 3000;
+const port = process.argv[2] || process.env.PORT || 3000;
+console.log("arg :", process.env.PORT, process.argv);
 app.use(body_parser_1.default.json());
 app.use((0, cors_1.default)());
 // const dbTest = async () => {
@@ -56,22 +62,168 @@ app.use(accounts_2.default);
 app.use(message_template_1.default);
 app.use(login_1.default);
 app.use(scan_1.default);
-app.get("/private-api", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let dmList = [];
+app.use(jobs_1.default);
+app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.send("working on express server");
+}));
+app.post("/add-test-job", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { type, state } = req.body;
+    let jobServoce = new job_service_1.default();
+    let job = yield jobServoce.addJob({ type, state });
+    res.send(Object.assign({}, job));
+}));
+app.get("/get-all-userid", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let userId = yield account_schema_1.accountModel.find({}, { userId: 1 });
+    let userMap = userId.map((i) => i["userId"]);
+    res.send(userMap);
+}));
+app.get("/open-browser-proxy", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let browser = yield browerSetup_1.globalBrowser.initBrower();
+    console.log("browser opened");
+    let page = yield (browser === null || browser === void 0 ? void 0 : browser.newPage());
+    // await page?.goto("https://whatismyipaddress.com/", { timeout: 0 });
+    // let context = await page?.content();
+}));
+app.get("/get-user-profile-data", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const ig = new instagram_private_api_1.IgApiClient();
-        ig.state.generateDevice("ammy_forst");
+        const session = JSON.parse(fs_1.default.readFileSync("./session.json", "utf-8"));
+        yield ig.state.deserialize(session);
+        let page = 1;
+        let limit = 20;
+        let loop = true;
+        let data = [];
+        while (loop) {
+            let skip = (page - 1) * limit;
+            let users = yield thread_schema_1.ThreadModel.find({ userData: { $exists: false } })
+                .skip(skip)
+                .limit(limit);
+            for (let index = 0; index < users.length; index++) {
+                const user = users[index];
+                try {
+                    // get complete user info
+                    let userProfile = yield ig.user.info(user.data.pk);
+                    console.log("user fetch,", userProfile.username);
+                    yield thread_schema_1.ThreadModel.updateOne({ userId: user.userId }, // Query to find the document by user_id
+                    { $set: { userData: userProfile } } // Update the userData field with new value
+                    );
+                    console.log("user profile saved");
+                    // console.log("userProfile :", JSON.stringify(userProfile));
+                }
+                catch (error) {
+                    if (error instanceof instagram_private_api_1.IgResponseError &&
+                        error.message.includes("feedback_required")) {
+                        loop = false;
+                        throw error;
+                    }
+                    console.log("error :", error);
+                }
+                const randomDelay = Math.floor(Math.random() * 3) + 2;
+                yield (0, delay_1.default)(randomDelay * 1000);
+                data.push(user.userId);
+            }
+            console.log("page ", page);
+            if (users.length === 0) {
+                loop = false;
+            }
+            else {
+                page++;
+            }
+        }
+        res.send(data);
+    }
+    catch (error) {
+        console.log("error in getting user details", error);
+        res.send({ error });
+    }
+}));
+function handleChallenge(ig, error) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { api } = error;
+        yield ig.challenge.auto(true); // Requesting the challenge (true means automatic selection)
+        const challengeChoices = yield inquirer_1.default.prompt([
+            {
+                type: "list",
+                name: "method",
+                message: "Select a challenge method:",
+                choices: [
+                    { name: "Email", value: "1" },
+                    { name: "Phone", value: "0" },
+                ],
+            },
+        ]);
+        // Submitting the selected challenge option (email or phone)
+        yield ig.challenge.selectVerifyMethod(challengeChoices.method);
+        const codePrompt = yield inquirer_1.default.prompt([
+            {
+                type: "input",
+                name: "code",
+                message: "Enter the verification code you received:",
+            },
+        ]);
+        // Submitting the verification code
+        yield ig.challenge.sendSecurityCode(codePrompt.code);
+        console.log("Challenge handled successfully!");
+    });
+}
+function handleTwoFactorAuth(ig, error) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { username } = error;
+        const twoFactorPrompt = yield inquirer_1.default.prompt([
+            {
+                type: "input",
+                name: "code",
+                message: "Enter the two-factor authentication code:",
+            },
+        ]);
+        yield ig.account.twoFactorLogin({
+            username,
+            verificationCode: twoFactorPrompt.code,
+            twoFactorIdentifier: error.response.body.two_factor_info.two_factor_identifier,
+            verificationMethod: "1", // Assuming 1 is SMS
+            trustThisDevice: "1",
+        });
+        console.log("Logged in with two-factor authentication successfully!");
+    });
+}
+app.get("/private-login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const ig = new instagram_private_api_1.IgApiClient();
+    try {
+        ig.state.generateDevice("mccray_shih017");
         yield ig.simulate.preLoginFlow();
         console.log("pre login");
-        const loggedInUser = yield ig.account.login("ammy_forst", "maxie@123");
+        const loggedInUser = yield ig.account.login("mccray_shih017", "alfaalfa234");
         console.log("login complete ;", loggedInUser.pk);
         process.nextTick(() => __awaiter(void 0, void 0, void 0, function* () { return yield ig.simulate.postLoginFlow(); }));
         console.log("post login flow");
         const session = yield ig.state.serialize(); // This returns an object with cookies and other session-related info
         delete session.constants; // Remove unnecessary data
         fs_1.default.writeFileSync("./session.json", JSON.stringify(session));
-        // const session = JSON.parse(fs.readFileSync("./session.json", "utf-8"));
-        // await ig.state.deserialize(session);
+        res.send("login complete");
+    }
+    catch (error) {
+        if (error instanceof instagram_private_api_1.IgCheckpointError) {
+            console.log("Challenge required. Handling challenge...");
+            yield handleChallenge(ig, error);
+            res.send("challenge");
+        }
+        else if (error instanceof instagram_private_api_1.IgLoginTwoFactorRequiredError) {
+            console.log("Two-factor authentication required.");
+            yield handleTwoFactorAuth(ig, error);
+            res.send("2fa");
+        }
+        else {
+            console.log("Error during login:", error.message);
+            res.send("error");
+        }
+    }
+}));
+app.get("/private-thread-data", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let dmList = [];
+    try {
+        const ig = new instagram_private_api_1.IgApiClient();
+        const session = JSON.parse(fs_1.default.readFileSync("./session.json", "utf-8"));
+        yield ig.state.deserialize(session);
         // inbox.forEach((thread) => {
         //   console.log(`Thread ID: ${thread.thread_id}`);
         //   thread.users.forEach((user) => {
@@ -95,24 +247,71 @@ app.get("/private-api", (req, res) => __awaiter(void 0, void 0, void 0, function
         do {
             inbox = yield inboxFeed.items();
             try {
-                inbox.forEach((thread) => {
-                    thread.users.forEach((user) => __awaiter(void 0, void 0, void 0, function* () {
-                        try {
-                            // get complete user info
-                            let userProfile = yield ig.user.info(user.pk);
-                            console.log("user fetch,", user.username);
-                            yield (0, delay_1.default)(3000);
-                            // console.log("userProfile :", JSON.stringify(userProfile));
-                        }
-                        catch (error) {
-                            console.log("error :", error);
-                        }
+                for (let index = 0; index < inbox.length; index++) {
+                    const thread = inbox[index];
+                    for (let index = 0; index < thread.users.length; index++) {
+                        const user = thread.users[index];
+                        // try {
+                        //   // get complete user info
+                        //   let userProfile = await ig.user.info(user.pk);
+                        //   console.log("user fetch,", userProfile.full_name);
+                        //   // console.log("userProfile :", JSON.stringify(userProfile));
+                        // } catch (error) {
+                        //   console.log("error :", error);
+                        // }
                         dmList.push(user);
-                        console.log(`User: ${user.username}, Full Name: ${user.full_name} `, JSON.stringify(thread.last_activity_at), JSON.stringify(thread.last_seen_at)
+                        if (dmList.length % 100 === 0) {
+                            yield (0, delay_1.default)(5000);
+                        }
+                        else {
+                            const randomDelay = Math.floor(Math.random() * 1) + 0;
+                            yield (0, delay_1.default)(randomDelay * 1000);
+                        }
+                        // let threadModel = await ThreadModel.create({
+                        //   userId: user.username,
+                        //   messageId: user["interop_messaging_user_fbid"],
+                        //   data: user,
+                        // });
+                        // await threadModel.save();
+                        // await ThreadModel.updateOne(
+                        //   { userId: user.username },
+                        //   {
+                        //     $set: {
+                        //       userId: user.username,
+                        //       messageId: user["interop_messaging_user_fbid"],
+                        //       data: user,
+                        //     },
+                        //   },
+                        //   {
+                        //     upsert: true,
+                        //   }
+                        // );
+                        // console.log("save to db");
+                        console.log(`User: ${user.username}, Full Name: ${user.full_name} ${user.pk} `, user.last_activity_at, user.last_seen_at
                         // `${thread.thread_id}`
                         );
-                    }));
-                });
+                    }
+                }
+                // inbox.forEach(async (thread) => {
+                //   thread.users.forEach(async (user) => {
+                //     try {
+                //       // get complete user info
+                //       let userProfile = await ig.user.info(user.pk);
+                //       console.log("user fetch,", user.username);
+                //       await delay(3000);
+                //       // console.log("userProfile :", JSON.stringify(userProfile));
+                //     } catch (error) {
+                //       console.log("error :", error);
+                //     }
+                //     dmList.push(user);
+                //     console.log(
+                //       `User: ${user.username}, Full Name: ${user.full_name} `,
+                //       JSON.stringify(thread.last_activity_at),
+                //       JSON.stringify(thread.last_seen_at)
+                //       // `${thread.thread_id}`
+                //     );
+                //   });
+                // });
                 thereIsMore = inboxFeed.isMoreAvailable();
                 console.log("ismore :", thereIsMore);
             }
@@ -121,7 +320,7 @@ app.get("/private-api", (req, res) => __awaiter(void 0, void 0, void 0, function
                 thereIsMore = false;
             }
             console.log("count :", dmList.length);
-            yield (0, delay_1.default)(5000);
+            yield (0, delay_1.default)(1000);
         } while (thereIsMore);
         res.send({ ok: "l", dmList });
     }
